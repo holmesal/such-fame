@@ -1,0 +1,39 @@
+<fa-scroll-view 
+  fa-pipe-from="horizontalScrollHandler" 
+  fa-options="options.horizontalScrollView">
+
+  <fa-view ng-repeat="page in pages">
+
+    <fa-grid-layout fa-options="options.grid">
+
+      <!-- If this is on desktop, the first view will be the full-size image on the left -->
+      <fa-view ng-if="layout == 'horizontal'">
+        <fa-surface 
+          fa-size="[undefined,undefined]"
+          fa-options="options.clipped" 
+          fa-properties="getImageProps(page)" 
+          fa-pipe-to="horizontalScrollHandler">
+        </fa-surface>
+      </fa-view>
+
+      <!-- On both desktop and mobile, this section is scrollable -->
+
+      <fa-scroll-view fa-pipe-from="page.verticalScrollHandler" ng-if="layout">
+
+        <fa-view ng-if="layout == 'vertical'">
+          <fa-surface 
+            fa-size="[undefined,270]"
+            fa-options="options.clipped" 
+            fa-properties="getImageProps(page)" 
+            fa-pipe-to="page.verticalScrollHandler">
+          </fa-surface>
+        </fa-view>
+
+        <ng-include src="page.content"></ng-include>
+
+      </fa-scroll-view>
+
+    </fa-grid-layout>
+
+  </fa-view>
+</fa-scroll-view>
