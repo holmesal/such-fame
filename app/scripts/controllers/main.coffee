@@ -75,12 +75,15 @@ angular.module('portfolioApp')
       ,
         title: 'another',
         image: 'http://33.media.tumblr.com/d59fde7754e24629be674872632e7556/tumblr_nb1udanVmD1st5lhmo1_1280.jpg'
+        content: 'views/content/alonso.html'
       ,
         title: 'third',
         image: 'http://38.media.tumblr.com/bae910978b35b87f5e22b3165b4fb567/tumblr_nbk5l16U5S1st5lhmo1_1280.jpg'
+        content: 'views/content/alonso.html'
       ,
         title: 'fourth',
         image: 'http://33.media.tumblr.com/537d8986d6b8df79a9fd6901e7174fe2/tumblr_nbk5oaEN2n1st5lhmo1_1280.jpg'
+        content: 'views/content/alonso.html'
     ]
 
 
