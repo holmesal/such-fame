@@ -1,39 +1,38 @@
-<fa-scroll-view 
-  fa-pipe-from="horizontalScrollHandler" 
-  fa-options="options.horizontalScrollView">
-
-  <fa-view ng-repeat="page in pages">
-
-    <fa-grid-layout fa-options="options.grid">
-
-      <!-- If this is on desktop, the first view will be the full-size image on the left -->
-      <fa-view ng-if="layout == 'horizontal'">
-        <fa-surface 
-          fa-size="[undefined,undefined]"
-          fa-options="options.clipped" 
-          fa-properties="getImageProps(page)" 
-          fa-pipe-to="horizontalScrollHandler">
+<fa-surface fa-background-color="'#FEFEFE'"></fa-surface>
+<!-- Container -->
+<fa-modifier fa-scale="scaler.get()">
+  <fa-modifier fa-size="[{{dims.w}},{{dims.h}}]" fa-origin="[1,0]" fa-align="[1,0]">
+    <fa-modifier fa-origin="[0.5,0.5]" fa-align="[0.5,0.5]">
+      <fa-modifier ng-repeat="circle in circles" fa-opacity="circle.opacity.get()" fa-size="[{{circleSize}}, {{circleSize}}]" fa-translate="circle">
+        <fa-surface fa-animate-leave="handleExit(circle, $done)" fa-click="circleClicked()">
+          <div ng-style="{
+            border: '2px solid '+colorMap[circle._id],
+            backgroundColor: colorMap[circle._id],
+            borderRadius: circleSize + 'px',
+            width: circleSize + 'px',
+            height: circleSize + 'px'}"></div>
         </fa-surface>
-      </fa-view>
+      </fa-modifier>
+    </fa-modifier>
+    <!-- Surface to catch background clicks -->
+    <fa-surface fa-background-color="'d#333333'"  fa-click="zoomIn()"></fa-surface>
+  </fa-modifier>
+</fa-modifier>
+<fa-scroll-view fa-pipe-from="scrollEventHandler">
+<fa-view fa-size="[true,true]">
+<fa-surface fa-pipe-to="scrollEventHandler" fa-size="[true,true]">
+  <h1>hi there!</h1>
+  <h1>hi there!</h1>
+  <h1>hi there!</h1>
+  <h1>hi there!</h1>
+  <h1>hi there!</h1>
+  <h1>hi there!</h1>
+  <h1>hi there!</h1>
+  <h1>hi there!</h1>
+  <h1>hi there!</h1>
+  <h1>hi there!</h1>
+</fa-surface>
 
-      <!-- On both desktop and mobile, this section is scrollable -->
-
-      <fa-scroll-view fa-pipe-from="page.verticalScrollHandler" ng-if="layout">
-
-        <fa-view ng-if="layout == 'vertical'">
-          <fa-surface 
-            fa-size="[undefined,270]"
-            fa-options="options.clipped" 
-            fa-properties="getImageProps(page)" 
-            fa-pipe-to="page.verticalScrollHandler">
-          </fa-surface>
-        </fa-view>
-
-        <ng-include src="page.content"></ng-include>
-
-      </fa-scroll-view>
-
-    </fa-grid-layout>
-
-  </fa-view>
+</fa-view>
 </fa-scroll-view>
+
