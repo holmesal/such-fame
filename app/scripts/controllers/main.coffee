@@ -14,11 +14,12 @@ angular.module('portfolioApp')
     Collision = $famous['famous/physics/constraints/Collision']
     Repulsion = $famous['famous/physics/forces/Repulsion']
     Spring = $famous['famous/physics/forces/Spring']
+    Force = $famous['famous/physics/forces/Force']
     Distance = $famous['famous/physics/constraints/Distance']
     Vector = $famous['famous/math/Vector']
 
     numCircles = 5
-    $scope.circleSize = 50
+    $scope.circleSize = 70
     $scope.dims =
       w: $window.innerWidth
       h: $window.innerHeight
@@ -28,14 +29,25 @@ angular.module('portfolioApp')
     height = 0.5
     DISTANCE = 200
     expanded = true # layout state tracker
-    # colors = ["#b58900","#cb4b16","#dc322f","#d33682","#6c71c4","#268bd2","#2aa198","#859900"]
+    colors = ["#b58900","#cb4b16","#dc322f","#d33682","#6c71c4","#268bd2","#2aa198","#859900"]
+    # colors = ["#E7604A", "#00CF69", "#4A90E2", "#738B97", "#F5A623"]
     colors = ["#575757"]
+    # colors = ["#FEFEFE"]
+    $scope.stroke = "#FEFEFE"
 
     # Zoom levels
     levels = 
       out: [0.1,0.1]
       in: [1,1]
+    zoomedIn = false
+    # Start zoomed in
     $scope.scaler = new Transitionable levels.out
+    $scope.contentScaler = new Transitionable [1,1]
+
+    # Event handler for scroll containers
+    $scope.scrollEventHandler = new EventHandler
+
+    $scope.imageFader = new Transitionable 0
 
 
     $scope.colorMap = {}
@@ -49,7 +61,7 @@ angular.module('portfolioApp')
     # Create some circles
     $scope.colorMap = {}
 
-    for i in [0..numCircles]
+    for i in [0...numCircles]
       circ = new Circle 
         radius: $scope.circleSize/2
         # position: [width, height]
@@ -70,6 +82,43 @@ angular.module('portfolioApp')
     repulsionTrans = new Transitionable 0
     # Circle-circle repulsion 
     repulse = new Repulsion
+
+    $scope.spinner = new Transitionable 0
+
+    # count = 1
+    # slowSpin = ->
+    #   $scope.spinner.set 3.14/numCircles*2*count,
+    #     duration: 300
+    #   , ->
+    #     count += 1
+    #     $timeout slowSpin, 2000
+    #     # slowSpin()
+    # slowSpin()
+
+    spin = (first = false) ->
+      console.log "it is now #{Date.now()/1000}"
+      period = 3000
+      duration = 300
+      if first
+        # Sleep until nearest whole period
+        millis = period - ((Date.now()/1000) % (period/1000)) * 1000
+        console.log "it is now #{Date.now()/1000} - sleeping #{millis} until #{Date.now()/1000 + millis/1000}"
+        $timeout spin, millis
+      else
+        # Pick a random location
+        location = ((Date.now()/100000) % 1) * 3.14
+        location = Math.random()*3.14
+        console.log 'spinning to ' + location
+        $scope.spinner.set location,
+          duration: duration
+          curve: 'easeInOut'
+        , ->
+          # spin()
+          delay = Math.random() * 10000
+          delay = period - duration
+          $timeout spin, delay
+    spin true
+
 
     # Circle-center spring 
     spring = new Spring
@@ -105,7 +154,7 @@ angular.module('portfolioApp')
 
       # Make the spring distance big
       spring.setOptions
-        length: 90
+        length: 110
 
       expanded = true
 
@@ -120,6 +169,14 @@ angular.module('portfolioApp')
       spring.setOptions
         length: 0.01
       expanded = false
+
+    bump = ->
+      console.log 'bump'
+      repulsionTrans.set 100, 
+        duration: 100
+      , ->
+        repulsionTrans.set 5,
+          duration: 100
 
     # Start off by expanding
     contract()
@@ -152,23 +209,54 @@ angular.module('portfolioApp')
         restitution: 0.1
     ]
 
-    $scope.circleClicked = ->
-      if $scope.scaler.get() is levels.out 
+    $scope.circleClicked = (circle) ->
+      unless zoomedIn
         # we're zoomed out, so zoom in
         $scope.zoomIn()
       else
         # we're zoomed in, so zoom out
-        $scope.scaler.set levels.out,
-          duration: 300
-          curve: 'easeInOut'
+        $scope.zoomOut()
+        console.log 'no'
+
+      # bump()
+
+      # console.log circle
+      # f = new Force [0,0,-10]
+      # f.isZero = ->
+      #   return false
+      # console.log f
+      # circle.applyForce f.force
 
     $scope.zoomIn = ->
+      $scope.contentScaler.set [10,10],
+        duration: 300
+        curve: 'easeInOut'
+      $scope.imageFader.set 1,
+        duration: 300
+        curve: 'easeInOut'
       $scope.scaler.set levels.in,
         duration: 300
         curve: 'easeInOut'
+      , ->
+        # bump()
+      zoomedIn = true
 
+    $scope.zoomOut = ->
+      $scope.contentScaler.set [1,1],
+        duration: 300
+        curve: 'easeInOut'
+      $scope.imageFader.set 0,
+        duration: 300
+        curve: 'easeInOut'
+      $scope.scaler.set levels.out,
+        duration: 300
+        curve: 'easeInOut'
+      zoomedIn = false
 
-    $scope.scrollEventHandler = new EventHandler
+    # Then animate out
+    # $timeout $scope.zoomOut, 3000
+
+    $scope.zoomIn()
 
 
     # physicsEngine.attach walls, $scope.circles

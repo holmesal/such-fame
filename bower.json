@@ -9,7 +9,7 @@
     "angular-cookies": "1.2.6",
     "angular-sanitize": "1.2.6",
     "angular-route": "1.2.6",
-    "famous-angular": "~0.3.0",
+    "famous-angular": "~0.5.0",
     "underscore": "~1.7.0"
   },
   "devDependencies": {
