@@ -378,6 +378,7 @@ angular.module('portfolioApp')
     ]
 
     $scope.circleClicked = (circle, idx) ->
+      $scope.selected = true
       for circ in $scope.circles 
         # Circles to be shrunk
         unless circ is circle
@@ -410,6 +411,7 @@ angular.module('portfolioApp')
 
 
     $scope.reset = ->
+      $scope.selected = false
       console.log 'resettting!'
       for circ in $scope.circles 
         circ.spring.setOptions
@@ -512,10 +514,10 @@ angular.module('portfolioApp')
     #     curve: 'linear'
     # , 1000
 
-    $scope.cardTranslation = new Transitionable [Math.PI/2, 0, 0]
+    $scope.cardTranslation = new Transitionable [0, 500, 0]
 
-    $timeout ->
+    $scope.animateCardEnter = ->
+      console.log 'coming in!'
       $scope.cardTranslation.set [0,0,0],
-        duration: 300
+        duration: 1000
         curve: 'linear'
-    , 1000

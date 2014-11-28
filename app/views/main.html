@@ -68,7 +68,7 @@
 
 
 
-<fa-view fa-size="[true,true]" ng-if="false">
+<fa-view fa-size="[true,true]" ng-if="selected" fa-animate-enter="animateCardEnter($done)">
   <fa-modifier fa-translate="cardTranslation.get()">
 
     <fa-surface fa-background-color="'#FEFEFE'" fa-pipe-to="scrollEventHandler" fa-size="[undefined,true]">
