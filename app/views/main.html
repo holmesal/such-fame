@@ -1,13 +1,13 @@
-<fa-scroll-view fa-pipe-from="scrollEventHandler">
+<fa-scroll-view fa-pipe-from="scrollEventHandler" fa-size="[true,true]" fa-options="scrollOptions">
 
-<fa-view class="project" fa-pipe-to="scrollEventHandler" fa-size="[true,{{dims.h - 200}}]">
+<fa-view class="project" fa-pipe-to="scrollEventHandler" fa-size="[true,{{dims.h - bottomCardPadding}}]">
 <!-- <fa-surface fa-background-color="'#FEFEFE'"></fa-surface> -->
-<fa-modifier fa-opacity="imageFader.get()" fa-origin="[0.5,0.5]" fa-align="[0.5,0.5]" >
-  <fa-image-surface fa-image-url="/images/blurryme.png" fa-size="[undefined,true]" fa-pipe-to="scrollEventHandler"></fa-image-surface>
+<fa-modifier fa-opacity="imageFader.get()" fa-origin="[0.5,0.5]" fa-align="[0.5,0.5]">
+  <fa-image-surface fa-image-url="/images/blurryme.png" fa-size="[{{dims.w}},{{dims.h}}]" fa-pipe-to="scrollEventHandler"></fa-image-surface>
 </fa-modifier>
 
 <!-- Container -->
-<fa-modifier fa-scale="scaler.get()" fa-translate="[0,0,1000]">
+<fa-modifier fa-scale="scaler.get()" fa-translate="[0,0,999999]">
   <fa-modifier fa-size="[{{dims.w}},{{dims.h}}]">
     <!-- Modifier to move origin to center -->
     <fa-modifier fa-perspective="1000">
@@ -68,7 +68,12 @@
 
 
 
-<fa-view fa-size="[true,true]" ng-if="selected" fa-animate-enter="animateCardEnter($done)">
+<fa-view 
+  fa-size="[true,true]" 
+  ng-if="selected" 
+  fa-animate-enter="animateCardEnter($done)"
+  fa-animate-leave="animateCardLeave($done)"
+  fa-animate-halt="animateCardHalt()">
   <fa-modifier fa-translate="cardTranslation.get()">
 
     <fa-surface fa-background-color="'#FEFEFE'" fa-pipe-to="scrollEventHandler" fa-size="[undefined,true]">

@@ -18,6 +18,11 @@ angular.module('portfolioApp')
     Force = $famous['famous/physics/forces/Force']
     Distance = $famous['famous/physics/constraints/Distance']
     Vector = $famous['famous/math/Vector']
+    Scrollview = $famous['famous/views/Scrollview'];
+
+    # transitions
+    SnapTransition = $famous['famous/transitions/SnapTransition']
+    Transitionable.registerMethod 'snap', SnapTransition
 
     numCircles = 6
     circleSizes = 
@@ -42,6 +47,9 @@ angular.module('portfolioApp')
     colors = ["#575757"]
     # colors = ["#FEFEFE"]
     $scope.stroke = "#FEFEFE"
+
+    # How much space between the bottom of the screen and the popup card
+    $scope.bottomCardPadding = 100
 
     # Zoom levels
     levels = 
@@ -78,6 +86,11 @@ angular.module('portfolioApp')
       small: 30
 
     silverRatio = 0.3
+
+    $scope.scrollview = new Scrollview()
+      # size: [true,true]
+
+    # console.log $scope.scrollview.pipeFrom
 
 
 
@@ -216,6 +229,7 @@ angular.module('portfolioApp')
      * @type {str} exclude (optional) - exclude a circle
     ###
     setSprings = (exclude=false) ->
+      console.groupCollapsed '%csetting springs', 'color: green;'
       if exclude 
         console.info "<excluding #{exclude}>"
       # first remove all existing springs
@@ -239,6 +253,8 @@ angular.module('portfolioApp')
               $scope.circles[i].neighborSprings.push physicsEngine.attach repulse, $scope.circles[i], $scope.circles[j]
             else
               console.info "skipping because either #{i} or #{j} is #{exclude}"
+
+      console.groupEnd()
 
         # Attach this element to every other element, except the excluded
         # circ.nextNeighborSpring = physicsEngine.attach repulse, safe, circ
@@ -296,9 +312,9 @@ angular.module('portfolioApp')
 
 
     # Hack to hook repulsion strength up to a transitionable
-    prerender = ->
-      # No force support yet
-      strength = repulsionTrans.get()
+    # prerender = ->
+    #   # No force support yet
+    #   strength = repulsionTrans.get()
       # repulse.setOptions
       #   strength: 2000#strength
 
@@ -307,7 +323,7 @@ angular.module('portfolioApp')
 
 
 
-    Engine.on 'prerender', prerender
+    # Engine.on 'prerender', prerender
 
     # Expand - circles fan out
     expand = ->
@@ -347,11 +363,11 @@ angular.module('portfolioApp')
           duration: 100
 
     # Start off by expanding
-    contract()
-    setTimeout ->
-      expand()
-      console.log 'hi'
-    , 1000
+    # contract()
+    # setTimeout ->
+    #   expand()
+    # , 1000
+    # expand()
 
 
     # Walls
@@ -382,7 +398,6 @@ angular.module('portfolioApp')
       for circ in $scope.circles 
         # Circles to be shrunk
         unless circ is circle
-          console.log circ
           # circ.setPosition [Math.random(),Math.random()]
           circ.spring.setOptions
             anchor: cornerParticle
@@ -412,7 +427,6 @@ angular.module('portfolioApp')
 
     $scope.reset = ->
       $scope.selected = false
-      console.log 'resettting!'
       for circ in $scope.circles 
         circ.spring.setOptions
             anchor: centerParticle
@@ -427,6 +441,8 @@ angular.module('portfolioApp')
       # $timeout setSprings, 100
 
       setSprings()
+
+    $scope.reset()
 
       # $scope.projectName.spring.setOptions
       #   anchor: circle
@@ -477,22 +493,6 @@ angular.module('portfolioApp')
 
     $scope.zoomIn()
 
-    $timeout ->
-      console.log 'starting'
-
-
-
-      # $scope.padder.set 500,
-      #   duration: 3000
-      #   curve: 'easeInOut'
-      # , ->
-      #   console.log 'ok doneskis'
-      #   alert 'doneskis!'
-      # console.log $scope.padder
-    , 1000
-
-    console.log 'ok'
-
 
     physicsEngine.attach walls, $scope.circles
 
@@ -514,10 +514,31 @@ angular.module('portfolioApp')
     #     curve: 'linear'
     # , 1000
 
-    $scope.cardTranslation = new Transitionable [0, 500, 0]
+    $scope.cardTranslation = new Transitionable [0,$scope.bottomCardPadding]
+    $scope.cardMoving = false
+    $scope.animateCardEnter = ($done) ->
+      $scope.cardTranslation.set [0,0],
+        method: 'snap'
+        dampingRatio: 0.2
+        period: 300
+      , $done
 
-    $scope.animateCardEnter = ->
-      console.log 'coming in!'
-      $scope.cardTranslation.set [0,0,0],
-        duration: 1000
-        curve: 'linear'
+    # $timeout ->
+
+
+    $scope.animateCardLeave = ($done) ->
+      $scope.cardTranslation.set [0,$scope.bottomCardPadding],
+        method: 'snap'
+        dampingRatio: 0.5
+        period: 200
+      , $done
+
+    $scope.animateCardHalt = ->
+      console.log 'halt called!'
+      $scope.cardTranslation.halt()
+
+    # $scope.cardParticle = new Particle
+    #   position: [$scope.dims.w/2, $scope.dims.h/2]
+
+    $scope.scrollOptions = 
+      position: 200

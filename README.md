@@ -4,6 +4,7 @@ TODO
 ===
 
 * add rotational spring
+* handle clicks on circles in non-selected view
 * smooth project switching
 * bouncy post cards
 * add icons to circles
