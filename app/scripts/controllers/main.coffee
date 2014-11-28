@@ -8,6 +8,7 @@ angular.module('portfolioApp')
     Engine = $famous['famous/core/Engine']
     PhysicsEngine = $famous['famous/physics/PhysicsEngine']
     Circle = $famous['famous/physics/bodies/Circle']
+    Particle = $famous['famous/physics/bodies/Particle']
     Transitionable = $famous['famous/transitions/Transitionable']
     Wall = $famous['famous/physics/constraints/Wall']
     Walls = $famous['famous/physics/constraints/Walls']
@@ -19,10 +20,17 @@ angular.module('portfolioApp')
     Vector = $famous['famous/math/Vector']
 
     numCircles = 5
-    $scope.circleSize = 70
+    circleSizes = 
+      big: 70
+      small: 5
+    $scope.circleSize = circleSizes.big
     $scope.dims =
       w: $window.innerWidth
       h: $window.innerHeight
+
+    topAnchor = 200
+
+    console.log $scope.dims
     # width = $window.innerWidth#320
     # height = $window.innerHeight# 320
     width = 0.5
@@ -61,11 +69,57 @@ angular.module('portfolioApp')
     # Create some circles
     $scope.colorMap = {}
 
+    $scope.layers = 
+      center: 1001
+      corner: 1002
+
+    $scope.springLengths = 
+      big: 200
+      small: 20
+
+
+
+    # Center set of information - adding these as particles, because I want to hook them up to springs later
+
+    # Center particle
+    centerParticle = new Particle 
+      position: [$scope.dims.w/2, $scope.dims.h/2, $scope.layers.center]
+
+    # Corner particle
+    $scope.cornerPosition = [$scope.dims.w-50, 50, $scope.layers.corner]
+    cornerParticle = new Particle 
+      position: $scope.cornerPosition
+    console.log cornerParticle
+
+    # Name
+    namePosition = topAnchor + circleSizes.big/2 + 100
+    $scope.projectName = new Particle 
+      position: [$scope.dims.w/2, namePosition, $scope.layers.center]
+    # $scope.projectName.spring = new Spring 
+    #   length: 0
+    #   anchor: [centerParticle]
+    physicsEngine.addBody $scope.projectName
+
+    # # Description
+    # descriptionPosition = namePosition + 100
+    # $scope.projectDescription = new Particle 
+    #   position: [$scope.dims.w/2, descriptionPosition]
+    # # $scope.projectDescription.spring = new Spring 
+    # #   length: 0
+    # #   anchor: [centerParticle]
+    # physicsEngine.addBody $scope.projectDescription
+
+
+
+
+
+
     for i in [0...numCircles]
       circ = new Circle 
-        radius: $scope.circleSize/2
-        # position: [width, height]
-        position: [width + Math.random()*0.0000001, height + Math.random()*0.000001]
+        radius: circleSizes.big/2
+        position: [$scope.dims.w/2 + Math.random()*0.0000001, $scope.dims.h/2 + Math.random()*0.0000001, $scope.layers.center]
+        # position: [width + Math.random()*0.0000001, height + Math.random()*0.000001]
+      # console.log circ
 
       circ._id = Math.random()
 
@@ -77,13 +131,40 @@ angular.module('portfolioApp')
 
       $scope.circles.push circ
 
+    # Center information
+
+
+    
+
+    # attraction = new Repulsion 
+    #   strength: 10
+    gv = new Vector [100,0,0]
+    gravity = new Force gv
+
+
+
+    
+    # $scope.projectName.applyForce(new Vector [0, 1, 0])
+    # physicsEngine.attach $scope.projectName.spring, $scope.projectName
+    # physicsEngine.attach attraction, centerParticle, $scope.projectName
+
+    # $scope.projectName.applyForce gravity.force
+    
 
     # Transitionable for repulsion
     repulsionTrans = new Transitionable 0
     # Circle-circle repulsion 
     repulse = new Repulsion
+    repulse = new Spring 
+      length: $scope.springLengths.big
+
 
     $scope.spinner = new Transitionable 0
+
+    $scope.padder = [true,300]
+    $timeout ->
+      $scope.padder = [true,0]
+    , 2000
 
     # count = 1
     # slowSpin = ->
@@ -117,29 +198,95 @@ angular.module('portfolioApp')
           delay = Math.random() * 10000
           delay = period - duration
           $timeout spin, delay
-    spin true
+    # spin true
 
 
-    # Circle-center spring 
-    spring = new Spring
-      anchor: [0.5,0.5]#[width/2, height/2]
-      period: 300
-      dampingRatio: 0.6
+    
+
+    # circle-circle collisions
+    collision = new Collision
+      restitution: 0.3
+
+    ###*
+     * sets springs between each of the circles
+     * @type {str} exclude (optional) - exclude a circle
+    ###
+    setSprings = (exclude=false) ->
+      if exclude 
+        console.info "<excluding #{exclude}>"
+      # first remove all existing springs
+      for circ in $scope.circles
+        # Remove the existing spring
+        if circ.nextNeighborSpring
+          console.info "detaching #{circ.nextNeighborSpring}"
+          physicsEngine.detach circ.nextNeighborSpring
+          circ.nextNeighborSpring = null
+        
+      for circ, idx in $scope.circles 
+
+        # Attach to the next element, unless it's the exclude element
+        unless wrap(idx + 1) is exclude
+          next = idx + 1
+        else
+          # skip that shit
+          next = idx + 2
+        # If you're at the end, attach to the start
+        next = wrap next
+
+
+        # Unless this element is excluded, attach the spring to the next neighbor
+        unless idx is exclude 
+          console.info "attaching (#{idx}) -- (#{next})"
+          circ.nextNeighborSpring = physicsEngine.attach repulse, $scope.circles[next], circ
+        else
+          console.info "skipping (#{idx})"
+
+    wrap = (idx) ->
+      if idx >= $scope.circles.length 
+        return idx - $scope.circles.length
+      else
+        return idx
+
 
     # Attach all the things
-    for circ in $scope.circles 
+    for circ, idx in $scope.circles 
+      # Make the spring
+      circ.spring = new Spring
+        anchor: centerParticle#[0.5,0.5]#[width/2, height/2]
+        period: 200
+        dampingRatio: 0.6
+        # forceFunction: Spring.FORCE_FUNCTIONS.FENE
+
       # Attach the repulsion
-      physicsEngine.attach repulse, $scope.circles, circ
+      # physicsEngine.attach repulse, $scope.circles, circ
       # Attach the spring
-      physicsEngine.attach spring, circ 
-      # console.log 'ok'
+      physicsEngine.attach circ.spring, circ 
+      # Attach the collisions
+      physicsEngine.attach collision, $scope.circles, circ
+
+      # Attach to the next spring
+      prev = idx - 1
+      if prev < 0
+        prev = $scope.circles.length - 1
+      next = idx + 1
+      if next is $scope.circles.length
+        next = 0
+      
+      # circ.neighborSprings.prev = physicsEngine.attach repulse, $scope.circles[prev], circ
+    setSprings()
+
 
     # Hack to hook repulsion strength up to a transitionable
     prerender = ->
       # No force support yet
       strength = repulsionTrans.get()
-      repulse.setOptions
-        strength: strength
+      # repulse.setOptions
+      #   strength: 2000#strength
+
+      # gravity.applyForce $scope.projectName
+      # $scope.projectName.applyForce(new Vector [0.01, 0, 0])
+
+
 
     Engine.on 'prerender', prerender
 
@@ -153,8 +300,9 @@ angular.module('portfolioApp')
         console.log 'done'
 
       # Make the spring distance big
-      spring.setOptions
-        length: 110
+      for circ in $scope.circles
+        circ.spring.setOptions
+          length: 60
 
       expanded = true
 
@@ -166,8 +314,9 @@ angular.module('portfolioApp')
       repulse.setOptions 
         strength: 0
       # Kill spring 
-      spring.setOptions
-        length: 0.01
+      for circ in $scope.circles
+        circ.spring.setOptions
+          length: 0.01
       expanded = false
 
     bump = ->
@@ -209,14 +358,54 @@ angular.module('portfolioApp')
         restitution: 0.1
     ]
 
-    $scope.circleClicked = (circle) ->
-      unless zoomedIn
-        # we're zoomed out, so zoom in
-        $scope.zoomIn()
-      else
-        # we're zoomed in, so zoom out
-        $scope.zoomOut()
-        console.log 'no'
+    $scope.circleClicked = (circle, idx) ->
+      for circ in $scope.circles 
+        unless circ is circle
+          circ.spring.setOptions
+            anchor: cornerParticle
+            length: circleSizes.small/2
+          circ.setRadius circleSizes.small/2
+        else
+
+          circ.spring.setOptions
+            anchor: [$scope.dims.w/2,topAnchor, $scope.layers.center]
+            length: 0
+
+          circ.setRadius circleSizes.big/2
+
+      console.log "circle #{idx} clicked!"
+
+      # Reset the radial springs, excluding the current one
+      setSprings idx
+
+      repulse.setOptions
+        length: $scope.springLengths.small
+
+    $scope.reset = ->
+      console.log 'resettting!'
+      for circ in $scope.circles 
+        circ.spring.setOptions
+            anchor: centerParticle
+            length: 60
+
+        circ.setRadius circleSizes.big/2
+
+      repulse.setOptions
+        length: $scope.springLengths.big
+
+      setSprings()
+
+      # $scope.projectName.spring.setOptions
+      #   anchor: circle
+      #   length: 50
+
+      # unless zoomedIn
+      #   # we're zoomed out, so zoom in
+      #   $scope.zoomIn()
+      # else
+      #   # we're zoomed in, so zoom out
+      #   $scope.zoomOut()
+      #   console.log 'no'
 
       # bump()
 
@@ -253,10 +442,23 @@ angular.module('portfolioApp')
         curve: 'easeInOut'
       zoomedIn = false
 
-    # Then animate out
-    # $timeout $scope.zoomOut, 3000
-
     $scope.zoomIn()
+
+    $timeout ->
+      console.log 'starting'
+
+
+
+      # $scope.padder.set 500,
+      #   duration: 3000
+      #   curve: 'easeInOut'
+      # , ->
+      #   console.log 'ok doneskis'
+      #   alert 'doneskis!'
+      # console.log $scope.padder
+    , 1000
+
+    console.log 'ok'
 
 
     # physicsEngine.attach walls, $scope.circles
@@ -267,3 +469,22 @@ angular.module('portfolioApp')
     #     anchor: [1,1]
     #     length: 0.1
     # , 2000
+
+    # $scope.scrollProps = 
+    #   margin: 200
+
+    # $scope.cardRotation = new Transitionable Math.PI/2
+
+    # $timeout ->
+    #   $scope.cardRotation.set 0,
+    #     duration: 300
+    #     curve: 'linear'
+    # , 1000
+
+    $scope.cardTranslation = new Transitionable [Math.PI/2, 0, 0]
+
+    $timeout ->
+      $scope.cardTranslation.set [0,0,0],
+        duration: 300
+        curve: 'linear'
+    , 1000
