@@ -15,17 +15,17 @@
       <fa-modifier fa-rotate-z="spinner.get()">
         <fa-modifier ng-repeat="circle in circles" fa-opacity="circle.opacity.get()" fa-size="circle.size" fa-origin="[0.5,0.5]" fa-translate="circle">
           <fa-surface fa-animate-leave="handleExit(circle, $done)" fa-click="circleClicked(circle, $index)">
-            <div ng-style="{
+            <div class="bubble" ng-style="{
               border: '1px solid ' + stroke,
               zbackgroundColor: colorMap[circle._id],
               borderRadius: circle.radius*2 + 'px',
               width: circle.radius*2 + 'px',
-              height: circle.radius*2 + 'px'}"></div>
+              height: circle.radius*2 + 'px'}"><p>{{$index}}</p></div>
           </fa-surface>
         </fa-modifier>
 
         <!-- surface to catch clicks -->
-        <fa-modifier fa-translate="cornerPosition" fa-origin="[0.5,0.5]">
+        <fa-modifier fa-translate="[{{cornerPosition[0]}},{{cornerPosition[1]}}, 9999]" fa-origin="[0.5,0.5]">
           <fa-surface 
             fa-background-color="'zrgba(0,0,0,0.1)'" 
             fa-align="[0.5,0.5]" 

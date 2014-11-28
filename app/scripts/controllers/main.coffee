@@ -75,7 +75,9 @@ angular.module('portfolioApp')
 
     $scope.springLengths = 
       big: 200
-      small: 20
+      small: 30
+
+    silverRatio = 0.3
 
 
 
@@ -83,10 +85,10 @@ angular.module('portfolioApp')
 
     # Center particle
     centerParticle = new Particle 
-      position: [$scope.dims.w/2, $scope.dims.h/2, $scope.layers.center]
+      position: [$scope.dims.w/2, $scope.dims.h/2]
 
     # Corner particle
-    $scope.cornerPosition = [$scope.dims.w-50, 50, $scope.layers.corner]
+    $scope.cornerPosition = [$scope.dims.w-50, 50]
     cornerParticle = new Particle 
       position: $scope.cornerPosition
     console.log cornerParticle
@@ -94,7 +96,7 @@ angular.module('portfolioApp')
     # Name
     namePosition = topAnchor + circleSizes.big/2 + 100
     $scope.projectName = new Particle 
-      position: [$scope.dims.w/2, namePosition, $scope.layers.center]
+      position: [$scope.dims.w/2, namePosition]
     # $scope.projectName.spring = new Spring 
     #   length: 0
     #   anchor: [centerParticle]
@@ -117,7 +119,7 @@ angular.module('portfolioApp')
     for i in [0...numCircles]
       circ = new Circle 
         radius: circleSizes.big/2
-        position: [$scope.dims.w/2 + Math.random()*0.0000001, $scope.dims.h/2 + Math.random()*0.0000001, $scope.layers.center]
+        position: [$scope.dims.w/2 + Math.random()*0.0000001, $scope.dims.h/2 + Math.random()*0.0000001]
         # position: [width + Math.random()*0.0000001, height + Math.random()*0.000001]
       # console.log circ
 
@@ -255,14 +257,14 @@ angular.module('portfolioApp')
         anchor: centerParticle#[0.5,0.5]#[width/2, height/2]
         period: 200
         dampingRatio: 0.6
-        # forceFunction: Spring.FORCE_FUNCTIONS.FENE
+        forceFunction: Spring.FORCE_FUNCTIONS.FENE
 
       # Attach the repulsion
       # physicsEngine.attach repulse, $scope.circles, circ
       # Attach the spring
       physicsEngine.attach circ.spring, circ 
       # Attach the collisions
-      physicsEngine.attach collision, $scope.circles, circ
+      # physicsEngine.attach collision, $scope.circles, circ
 
       # Attach to the next spring
       prev = idx - 1
@@ -360,33 +362,40 @@ angular.module('portfolioApp')
 
     $scope.circleClicked = (circle, idx) ->
       for circ in $scope.circles 
+        # Circles to be shrunk
         unless circ is circle
+          console.log circ
+          # circ.setPosition [Math.random(),Math.random()]
           circ.spring.setOptions
-            anchor: cornerParticle
-            length: circleSizes.small/2
-          circ.setRadius circleSizes.small/2
+            anchor: [$scope.dims.w/2, $scope.dims.h/2]#cornerParticle
+            # length: $scope.springLengths.small * silverRatio
+          # circ.setRadius circleSizes.small/2
+
+        # Circle to remain
         else
 
           circ.spring.setOptions
-            anchor: [$scope.dims.w/2,topAnchor, $scope.layers.center]
+            anchor: [$scope.dims.w/2,topAnchor]
             length: 0
 
           circ.setRadius circleSizes.big/2
 
       console.log "circle #{idx} clicked!"
 
+      # repulse.setOptions
+      #   length: $scope.springLengths.small
+
       # Reset the radial springs, excluding the current one
       setSprings idx
+      
 
-      repulse.setOptions
-        length: $scope.springLengths.small
 
     $scope.reset = ->
       console.log 'resettting!'
       for circ in $scope.circles 
         circ.spring.setOptions
             anchor: centerParticle
-            length: 60
+            length: $scope.springLengths.big * silverRatio
 
         circ.setRadius circleSizes.big/2
 
