@@ -394,34 +394,39 @@ angular.module('portfolioApp')
     ]
 
     $scope.circleClicked = (circle, idx) ->
-      $scope.selected = true
-      for circ in $scope.circles 
-        # Circles to be shrunk
-        unless circ is circle
-          # circ.setPosition [Math.random(),Math.random()]
-          circ.spring.setOptions
-            anchor: cornerParticle
-            length: $scope.springLengths.small * silverRatio
-            dampingRatio: 0.5
-          circ.setRadius circleSizes.small/2
 
-        # Circle to remain
-        else
+      unless $scope.selected
+        $scope.selected = true
+        for circ in $scope.circles 
+          # Circles to be shrunk
+          unless circ is circle
+            # circ.setPosition [Math.random(),Math.random()]
+            circ.spring.setOptions
+              anchor: cornerParticle
+              length: $scope.springLengths.small * silverRatio
+              dampingRatio: 0.5
+            circ.setRadius circleSizes.small/2
 
-          circ.spring.setOptions
-            anchor: [$scope.dims.w/2,topAnchor]
-            dampingRatio: 0.5
-            length: 0
+          # Circle to remain
+          else
 
-          circ.setRadius circleSizes.big/2
+            circ.spring.setOptions
+              anchor: [$scope.dims.w/2,topAnchor]
+              dampingRatio: 0.5
+              length: 0
 
-      console.log "circle #{idx} clicked!"
+            circ.setRadius circleSizes.big/2
 
-      repulse.setOptions
-        length: $scope.springLengths.small
+        console.log "circle #{idx} clicked!"
 
-      # Reset the radial springs, excluding the current one
-      setSprings idx
+        repulse.setOptions
+          length: $scope.springLengths.small
+
+        # Reset the radial springs, excluding the current one
+        setSprings idx
+
+      else
+        $scope.reset()
       
 
 
