@@ -19,7 +19,7 @@ angular.module('portfolioApp')
     Distance = $famous['famous/physics/constraints/Distance']
     Vector = $famous['famous/math/Vector']
 
-    numCircles = 5
+    numCircles = 6
     circleSizes = 
       big: 70
       small: 5
@@ -159,6 +159,8 @@ angular.module('portfolioApp')
     repulse = new Repulsion
     repulse = new Spring 
       length: $scope.springLengths.big
+      period: 700
+      dampingRatio: 0.3
 
 
     $scope.spinner = new Transitionable 0
@@ -219,29 +221,44 @@ angular.module('portfolioApp')
       # first remove all existing springs
       for circ in $scope.circles
         # Remove the existing spring
-        if circ.nextNeighborSpring
-          console.info "detaching #{circ.nextNeighborSpring}"
-          physicsEngine.detach circ.nextNeighborSpring
-          circ.nextNeighborSpring = null
+        if circ.neighborSprings
+          console.info "detaching #{circ.neighborSprings}"
+          for springId in circ.neighborSprings
+            physicsEngine.detach springId
+          circ.neighborSprings = []
+        unless circ.neighborSprings
+          circ.neighborSprings = []
         
-      for circ, idx in $scope.circles 
+      safe = (circle for circle, index in $scope.circles unless index is exclude)
+      for circ, i in $scope.circles
+        for circ, j in $scope.circles
+          if i < j
+            unless i is exclude or j is exclude
+              console.info "#{i} <---> #{j}"
+              # attach!
+              $scope.circles[i].neighborSprings.push physicsEngine.attach repulse, $scope.circles[i], $scope.circles[j]
+            else
+              console.info "skipping because either #{i} or #{j} is #{exclude}"
 
-        # Attach to the next element, unless it's the exclude element
-        unless wrap(idx + 1) is exclude
-          next = idx + 1
-        else
-          # skip that shit
-          next = idx + 2
-        # If you're at the end, attach to the start
-        next = wrap next
+        # Attach this element to every other element, except the excluded
+        # circ.nextNeighborSpring = physicsEngine.attach repulse, safe, circ
+
+        # # Attach to the next element, unless it's the exclude element
+        # unless wrap(idx + 1) is exclude
+        #   next = idx + 1
+        # else
+        #   # skip that shit
+        #   next = idx + 2
+        # # If you're at the end, attach to the start
+        # next = wrap next
 
 
-        # Unless this element is excluded, attach the spring to the next neighbor
-        unless idx is exclude 
-          console.info "attaching (#{idx}) -- (#{next})"
-          circ.nextNeighborSpring = physicsEngine.attach repulse, $scope.circles[next], circ
-        else
-          console.info "skipping (#{idx})"
+        # # Unless this element is excluded, attach the spring to the next neighbor
+        # unless idx is exclude 
+        #   console.info "attaching (#{idx}) -- (#{next})"
+        #   circ.nextNeighborSpring = physicsEngine.attach repulse, $scope.circles[next], circ
+        # else
+        #   console.info "skipping (#{idx})"
 
     wrap = (idx) ->
       if idx >= $scope.circles.length 
@@ -255,16 +272,16 @@ angular.module('portfolioApp')
       # Make the spring
       circ.spring = new Spring
         anchor: centerParticle#[0.5,0.5]#[width/2, height/2]
-        period: 200
-        dampingRatio: 0.6
-        forceFunction: Spring.FORCE_FUNCTIONS.FENE
+        period: 300
+        dampingRatio: 0.3
+        # forceFunction: Spring.FORCE_FUNCTIONS.FENE
 
       # Attach the repulsion
       # physicsEngine.attach repulse, $scope.circles, circ
       # Attach the spring
       physicsEngine.attach circ.spring, circ 
       # Attach the collisions
-      # physicsEngine.attach collision, $scope.circles, circ
+      physicsEngine.attach collision, $scope.circles, circ
 
       # Attach to the next spring
       prev = idx - 1
@@ -346,7 +363,7 @@ angular.module('portfolioApp')
     ,
       new Wall
         normal: [-1,0,0]
-        distance: width
+        distance: $scope.dims.w
         restitution: 0.1
     ,
       new Wall
@@ -356,7 +373,7 @@ angular.module('portfolioApp')
     ,
       new Wall
         normal: [0,-1,0]
-        distance: height
+        distance: $scope.dims.h
         restitution: 0.1
     ]
 
@@ -367,23 +384,25 @@ angular.module('portfolioApp')
           console.log circ
           # circ.setPosition [Math.random(),Math.random()]
           circ.spring.setOptions
-            anchor: [$scope.dims.w/2, $scope.dims.h/2]#cornerParticle
-            # length: $scope.springLengths.small * silverRatio
-          # circ.setRadius circleSizes.small/2
+            anchor: cornerParticle
+            length: $scope.springLengths.small * silverRatio
+            dampingRatio: 0.5
+          circ.setRadius circleSizes.small/2
 
         # Circle to remain
         else
 
           circ.spring.setOptions
             anchor: [$scope.dims.w/2,topAnchor]
+            dampingRatio: 0.5
             length: 0
 
           circ.setRadius circleSizes.big/2
 
       console.log "circle #{idx} clicked!"
 
-      # repulse.setOptions
-      #   length: $scope.springLengths.small
+      repulse.setOptions
+        length: $scope.springLengths.small
 
       # Reset the radial springs, excluding the current one
       setSprings idx
@@ -396,11 +415,14 @@ angular.module('portfolioApp')
         circ.spring.setOptions
             anchor: centerParticle
             length: $scope.springLengths.big * silverRatio
+            dampingRatio: 0.3
 
         circ.setRadius circleSizes.big/2
 
       repulse.setOptions
         length: $scope.springLengths.big
+
+      # $timeout setSprings, 100
 
       setSprings()
 
@@ -470,7 +492,7 @@ angular.module('portfolioApp')
     console.log 'ok'
 
 
-    # physicsEngine.attach walls, $scope.circles
+    physicsEngine.attach walls, $scope.circles
 
     # $timeout ->
     #   a = new Transitionable [200,0]
