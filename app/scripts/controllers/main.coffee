@@ -62,6 +62,7 @@ angular.module('portfolioApp')
 
     # Event handler for scroll containers
     $scope.scrollEventHandler = new EventHandler
+    console.log $scope.scrollEventHandler
 
     $scope.imageFader = new Transitionable 0
 
@@ -547,3 +548,25 @@ angular.module('portfolioApp')
 
     $scope.scrollOptions = 
       position: 200
+
+    # $scope.viewProps = 
+    #   style:
+    #     paddingTop: 200
+
+    # Not sure why this needs to be in a timeout
+    $timeout ->
+      $scope.scrollView = $famous.find('.outerScrollView')[0].renderNode
+      console.log $scope.scrollView
+    , 0
+
+    # $timeout ->
+    #   # scrollPos =  new Transitionable 0
+    #   $scope.scrollView.setPosition 200
+    #   # scrollPos.set 200,
+    #   #   duration: 1000
+    #   #   curve: 'easeInOut'
+    # , 1000
+    # 
+    $scope.alert = (args) ->
+      alert args
+
