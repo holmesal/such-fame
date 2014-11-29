@@ -33,7 +33,7 @@ angular.module('portfolioApp')
       w: $window.innerWidth
       h: $window.innerHeight
 
-    topAnchor = 200
+    topAnchor = $scope.dims.h * 0.2
 
     console.log $scope.dims
     # width = $window.innerWidth#320
@@ -49,7 +49,7 @@ angular.module('portfolioApp')
     $scope.stroke = "#FEFEFE"
 
     # How much space between the bottom of the screen and the popup card
-    $scope.bottomCardPadding = 100
+    $scope.bottomCardPadding = $scope.dims.h * 0.4
 
     # Zoom levels
     levels = 
@@ -108,7 +108,7 @@ angular.module('portfolioApp')
     console.log cornerParticle
 
     # Name
-    namePosition = topAnchor + circleSizes.big/2 + 100
+    namePosition = topAnchor + circleSizes.big + 30
     $scope.projectName = new Particle 
       position: [$scope.dims.w/2, namePosition]
     # $scope.projectName.spring = new Spring 
@@ -569,4 +569,21 @@ angular.module('portfolioApp')
     # 
     $scope.alert = (args) ->
       alert args
+
+    $scope.nameOpacity = new Transitionable 0
+    $scope.nameAnimation = 
+
+      enter: ($done) ->
+        $scope.nameOpacity.delay 200
+        $scope.nameOpacity.set 1,
+          duration: 300
+        , $done
+
+      leave: ($done) ->
+        $scope.nameOpacity.set 0,
+          duration: 50
+        , $done
+
+      halt: ($done) ->
+        $scope.nameOpacity.halt()
 

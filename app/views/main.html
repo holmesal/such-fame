@@ -1,7 +1,7 @@
 <fa-view class="project" fa-pipe-to="scrollEventHandler" fa-size="[true,{{dims.h - bottomCardPadding}}]">
 <!-- <fa-surface fa-background-color="'#FEFEFE'"></fa-surface> -->
 <fa-modifier fa-opacity="imageFader.get()" fa-origin="[0.5,0.5]" fa-align="[0.5,0.5]">
-  <fa-image-surface fa-image-url="/images/blurryme.png" fa-size="[{{dims.w}},{{dims.h}}]" fa-pipe-to="scrollEventHandler"></fa-image-surface>
+  <fa-image-surface fa-image-url="/images/blurryme.png" fa-size="[undefined,true]" fa-pipe-to="scrollEventHandler"></fa-image-surface>
 </fa-modifier>
 
 <!-- Container -->
@@ -13,7 +13,7 @@
       <fa-modifier fa-rotate-z="spinner.get()">
         <fa-modifier ng-repeat="circle in circles" fa-opacity="circle.opacity.get()" fa-size="circle.size" fa-origin="[0.5,0.5]" fa-translate="circle">
           <fa-modifier fa-origin="[0.5,0.5]" fa-align="[0.5,0.5]">
-            <fa-image-surface fa-image-url="/images/dna.png" fa-size="[12,true]" ></fa-image-surface>
+            <!-- <fa-image-surface fa-image-url="/images/dna.png" fa-size="[12,true]" ></fa-image-surface> -->
           </fa-modifier>
           <fa-surface fa-animate-leave="handleExit(circle, $done)" fa-click="circleClicked(circle, $index)">
             <div class="bubble" ng-style="{
@@ -45,8 +45,15 @@
       </fa-modifier>
 
       <!-- project name -->
-      <fa-modifier fa-translate="projectName" fa-origin="[0.5,0.5]" ng-if="false">
-        <fa-surface fa-size="[undefined,true]">
+      <fa-modifier 
+        fa-translate="projectName" 
+        fa-origin="[0.5,0.5]" 
+        ng-if="selected"
+        fa-opacity="nameOpacity.get()"
+        fa-animate-enter="nameAnimation.enter($done)"
+        fa-animate-leave="nameAnimation.leave($done)"
+        fa-animate-halt="nameAnimation.halt($done)">
+        <fa-surface fa-size="[undefined,true]" fa-background-color="'xred'">
           <p class="projectName">Hashtag</p>
           <p class="projectDescription">Awesome group chat for all of the things.</p>
         </fa-surface>
@@ -87,10 +94,13 @@
 
     <fa-surface fa-background-color="'#FEFEFE'" fa-pipe-to="scrollEventHandler" fa-size="[undefined,true]">
       <div class="project">
-        <p class="title">Shortwave</p>
-        <img src="images/yeoman.png">
+        <img class="image" src="images/imac.png">
 
-      <p class="description">Blue Bottle try-hard Marfa, viral deep v Banksy kogi. Meh vegan chia whatever banh mi. Salvia sriracha fashion axe aesthetic irony fap. Lo-fi Tumblr tattooed lumbersexual street art Neutra sustainable. Authentic blog put a bird on it hoodie mustache selvage, Wes Anderson hashtag gastropub 90's Thundercats keytar mumblecore plaid sartorial. Lomo tofu craft beer keytar tilde tousled PBR, quinoa distillery mixtape Helvetica shabby chic keffiyeh Williamsburg actually. Ugh flannel Neutra Shoreditch pickled authentic.
+      <p class="description">
+
+        This is an example paragraph, just to see how this text wraps when the sentences are really quite long. It's hard to get a feel for the wrapping when the text is just hipster ipsum, too, so this definitely helps quite a bit.<br><br>
+
+        Blue Bottle try-hard Marfa, viral deep v Banksy kogi. Meh vegan chia whatever banh mi. Salvia sriracha fashion axe aesthetic irony fap. Lo-fi Tumblr tattooed lumbersexual street art Neutra sustainable. Authentic blog put a bird on it hoodie mustache selvage, Wes Anderson hashtag gastropub 90's Thundercats keytar mumblecore plaid sartorial. Lomo tofu craft beer keytar tilde tousled PBR, quinoa distillery mixtape Helvetica shabby chic keffiyeh Williamsburg actually. Ugh flannel Neutra Shoreditch pickled authentic.
         <br><br>
 
     Godard dreamcatcher listicle swag, meditation keffiyeh kitsch tattooed. 90's Bushwick migas, Williamsburg Thundercats Intelligentsia Godard dreamcatcher tousled stumptown vinyl. Typewriter wolf scenester, bicycle rights jean shorts meditation Intelligentsia Godard paleo. Farm-to-table before they sold out chillwave seitan, single-origin coffee 90's selvage tousled street art authentic flexitarian Brooklyn jean shorts gastropub vegan. Williamsburg literally you probably haven't heard of them lomo twee. Ennui chia cronut, salvia cardigan banjo actually. Tilde Tumblr gentrify, vinyl iPhone meh kitsch squid raw denim artisan sriracha mustache.<br><br>

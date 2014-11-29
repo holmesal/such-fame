@@ -1,0 +1,66 @@
+// Fonts
+
+@font-face {
+  font-family:'Avenir-Black';
+  src: url('/fonts/Avenir-Black_latin+latin-ext_gdi.eot');
+  src: url('/fonts/Avenir-Black_latin+latin-ext_gdi.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/Avenir-Black_latin+latin-ext_gdi.woff') format('woff'),
+    url('/fonts/Avenir-Black_latin+latin-ext_gdi.ttf') format('truetype'),
+    url('/fonts/Avenir-Black_latin+latin-ext_gdi.svg#Avenir-Black') format('svg');
+  font-weight: 900;
+  font-style: normal;
+  font-stretch: normal;
+  unicode-range: U+0020-2044;
+}
+
+@font-face {
+  font-family:'Avenir-Book';
+  src: url('/fonts/Avenir-Book_latin+latin-ext_gdi.eot');
+  src: url('/fonts/Avenir-Book_latin+latin-ext_gdi.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/Avenir-Book_latin+latin-ext_gdi.woff') format('woff'),
+    url('/fonts/Avenir-Book_latin+latin-ext_gdi.ttf') format('truetype'),
+    url('/fonts/Avenir-Book_latin+latin-ext_gdi.svg#Avenir-Book') format('svg');
+  font-weight: 400;
+  font-style: normal;
+  font-stretch: normal;
+  unicode-range: U+0020-2215;
+}
+
+@font-face {
+  font-family:'Avenir-Heavy';
+  src: url('/fonts/Avenir-Heavy_latin+latin-ext_gdi.eot');
+  src: url('/fonts/Avenir-Heavy_latin+latin-ext_gdi.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/Avenir-Heavy_latin+latin-ext_gdi.woff') format('woff'),
+    url('/fonts/Avenir-Heavy_latin+latin-ext_gdi.ttf') format('truetype'),
+    url('/fonts/Avenir-Heavy_latin+latin-ext_gdi.svg#Avenir-Heavy') format('svg');
+  font-weight: 900;
+  font-style: normal;
+  font-stretch: normal;
+  unicode-range: U+000D-2215;
+}
+
+@font-face {
+  font-family:'Avenir-Light';
+  src: url('/fonts/Avenir-Light_latin+latin-ext_gdi.eot');
+  src: url('/fonts/Avenir-Light_latin+latin-ext_gdi.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/Avenir-Light_latin+latin-ext_gdi.woff') format('woff'),
+    url('/fonts/Avenir-Light_latin+latin-ext_gdi.ttf') format('truetype'),
+    url('/fonts/Avenir-Light_latin+latin-ext_gdi.svg#Avenir-Light') format('svg');
+  font-weight: 300;
+  font-style: normal;
+  font-stretch: normal;
+  unicode-range: U+0020-2044;
+}
+
+@font-face {
+  font-family:'Avenir-Medium';
+  src: url('/fonts/Avenir-Medium_latin+latin-ext_gdi.eot');
+  src: url('/fonts/Avenir-Medium_latin+latin-ext_gdi.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/Avenir-Medium_latin+latin-ext_gdi.woff') format('woff'),
+    url('/fonts/Avenir-Medium_latin+latin-ext_gdi.ttf') format('truetype'),
+    url('/fonts/Avenir-Medium_latin+latin-ext_gdi.svg#Avenir-Medium') format('svg');
+  font-weight: 500;
+  font-style: normal;
+  font-stretch: normal;
+  unicode-range: U+0020-2044;
+}

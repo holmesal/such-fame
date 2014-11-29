@@ -1,4 +1,10 @@
+@import fonts
+
+$white: #FEFEFE
+$black: #555960
+
 body 
+  font-family: Avenir-Heavy
   margin: 0
   font-family: sans-serif
   -webkit-backface-visibility: hidden
@@ -36,19 +42,29 @@ body
 
 .projectName, .projectDescription
   text-align: center
-  color: white
+  color: $white
 
 .projectName
-  margin-top: 50px
+  margin-top: 0px
+  font-family: Avenir-Heavy
 
 .projectDescription
-  margin-top: 50px
+  margin-top: 22px
+  font-family: Avenir-Book
+  font-size: 11pt
 
 .project
   // -webkit-filter: blur(8px)
   text-align: center
-  padding-left: 40px
-  padding-right: 40px
+  padding-left: 20px
+  padding-right: 20px
+  padding-top: 55px
+  padding-bottom: 100px
+  max-width: 600px
+  margin-left: auto
+  margin-right: auto
+  color: $black
+  font-family: Avenir-Light
   
   .title
 
@@ -58,6 +74,10 @@ body
 
   .image
     padding-bottom: 43px
+    width: 100%
 
   .description
     text-align: justify
+    // max-width: 400px
+    margin-left: auto
+    margin-right: auto
