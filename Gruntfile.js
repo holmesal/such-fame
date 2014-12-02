@@ -342,6 +342,17 @@ module.exports = function (grunt) {
       ]
     },
 
+    // Concat some templates
+    ngtemplates: {
+      portfolioApp: {
+        src: 'app/views/**/*.html',
+        dest: '.tmp/scripts/template.js',
+        options: {
+          usemin: '<%= yeoman.dist %>/scripts/scripts.js'
+        }
+      }
+    },
+
     // By default, your `index.html`'s <!-- Usemin block --> will take care of
     // minification. These next options are pre-configured if you do not wish
     // to use the Usemin blocks.
@@ -411,6 +422,7 @@ module.exports = function (grunt) {
     'bower-install',
     'useminPrepare',
     'concurrent:dist',
+    'ngtemplates',
     'autoprefixer',
     'concat',
     'ngmin',
