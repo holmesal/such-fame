@@ -29,25 +29,25 @@ angular.module('portfolioApp')
       icon: 'images/icons/hashtag.svg'
       description: 'Awesome group chat for all of the thingsss'
       template: 'views/projects/hashtag.html'
-      size: [20,true]
+      size: [26,true]
     ,
       name: 'Hero'
       icon: 'images/icons/hero.svg'
       description: 'Humanitarian emergency response UAV'
       template: 'views/projects/hero.html'
-      size: [50,true]
+      size: [30,true]
     ,
       name: 'Shortwave'
       icon: 'images/icons/shortwave.svg'
       description: 'A chat room with a 100-foot range'
       template: 'views/projects/shortwave.html'
-      size: [40,true]
+      size: [30,true]
     ,
       name: 'hey i\'m alonso'
       icon: 'images/icons/alonso.svg'
       description: ''
       template: 'views/projects/alonso.html'
-      size: [35,true]
+      size: [36,true]
     ]
 
     numCircles = $scope.projects.length#6

@@ -3,7 +3,8 @@ Just a little portfolio app to play around with famo.us.
 TODO
 ===
 
-* add buttons to posts
+* use ng-show/hide instead of ng-if, to kill lazy-loading
+* wait to show everything untill initial loading is done
 * finalize list of projects/circles & write copy
 * add https://www.npmjs.org/package/grunt-angular-templates to cache templates
 * find the HERO presentation video
