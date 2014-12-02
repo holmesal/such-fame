@@ -27,13 +27,13 @@ angular.module('portfolioApp')
     $scope.projects = [
       name: 'Hashtag'
       icon: 'images/icons/hashtag.svg'
-      description: 'Awesome group chat for all of the thingsss'
+      description: 'Awesome group chat for all of the things'
       template: 'views/projects/hashtag.html'
       size: [26,true]
     ,
       name: 'H.E.R.O.'
       icon: 'images/icons/hero.svg'
-      description: 'Humanitarian emergency response UAV'
+      description: 'Rugged humanitarian UAV'
       template: 'views/projects/hero.html'
       size: [30,true]
     ,
