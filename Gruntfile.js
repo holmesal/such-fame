@@ -228,7 +228,7 @@ module.exports = function (grunt) {
         assetsDirs: ['<%= yeoman.dist %>'],
         patterns: {
           js: [
-            [/(images\/icons\/hashtag\.svg)/, 'replacing icons defined in coffeescript']
+            [/(.*\.svg)/, 'replacing icons defined in coffeescript']
           ]
         }
       }
@@ -306,7 +306,7 @@ module.exports = function (grunt) {
             '*.html',
             'views/**/*.html',
             'bower_components/**/*',
-            'images/{,*/}*.{webp}',
+            'images/**/*.{webp,svg}',
             'fonts/*'
           ]
         }, {
@@ -337,8 +337,8 @@ module.exports = function (grunt) {
       dist: [
         'coffee',
         'compass:dist',
-        'imagemin',
-        'svgmin'
+        'imagemin'//,
+        // 'svgmin'
       ]
     },
 
