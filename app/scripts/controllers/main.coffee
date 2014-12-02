@@ -31,7 +31,7 @@ angular.module('portfolioApp')
       template: 'views/projects/hashtag.html'
       size: [26,true]
     ,
-      name: 'Hero'
+      name: 'H.E.R.O.'
       icon: 'images/icons/hero.svg'
       description: 'Humanitarian emergency response UAV'
       template: 'views/projects/hero.html'
