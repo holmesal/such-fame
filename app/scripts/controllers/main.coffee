@@ -24,7 +24,19 @@ angular.module('portfolioApp')
     SnapTransition = $famous['famous/transitions/SnapTransition']
     Transitionable.registerMethod 'snap', SnapTransition
 
-    numCircles = 6
+    $scope.projects = [
+      name: 'Hashtag'
+      icon: 'images/icons/hashtag.svg'
+      description: 'Awesome group chat for all of the thingsss'
+      template: 'views/projects/hashtag.html'
+    ,
+      name: 'Hero'
+      icon: 'images/icons/hero.svg'
+      description: 'Humanitarian emergency response UAV'
+      template: 'views/projects/hero.html'
+    ]
+
+    numCircles = $scope.projects.length#6
     circleSizes = 
       big: 70
       small: 5
@@ -395,6 +407,8 @@ angular.module('portfolioApp')
     ]
 
     $scope.circleClicked = (circle, idx) ->
+
+      $scope.project = $scope.projects[idx]
 
       unless $scope.selected
         $scope.selected = true
