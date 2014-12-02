@@ -61,7 +61,7 @@ angular.module('portfolioApp')
 
     topAnchor = $scope.dims.h * 0.2
 
-    console.log $scope.dims
+    # console.log $scope.dims
     # width = $window.innerWidth#320
     # height = $window.innerHeight# 320
     width = 0.5
@@ -88,7 +88,6 @@ angular.module('portfolioApp')
 
     # Event handler for scroll containers
     $scope.scrollEventHandler = new EventHandler
-    console.log $scope.scrollEventHandler
 
     $scope.imageFader = new Transitionable 0
 
@@ -131,7 +130,7 @@ angular.module('portfolioApp')
     $scope.cornerPosition = [$scope.dims.w-50, 50]
     cornerParticle = new Particle 
       position: $scope.cornerPosition
-    console.log cornerParticle
+    # console.log cornerParticle
 
     # Name
     namePosition = topAnchor + circleSizes.big + 30
@@ -154,28 +153,90 @@ angular.module('portfolioApp')
 
 
 
+    initPhysics = ->
+
+      for i in [0...numCircles]
+        circ = new Circle 
+          radius: circleSizes.big/2
+          position: [$scope.dims.w/2 + Math.random()*0.0000001, $scope.dims.h/2 + Math.random()*0.0000001]
+          # position: [width + Math.random()*0.0000001, height + Math.random()*0.000001]
+        # console.log circ
+
+        circ._id = Math.random()
+
+        # Fader and scaler for icons
+        circ.iconScaler = new Transitionable 1
+        circ.iconFader = new Transitionable 1
+
+        # Add
+        physicsEngine.addBody circ 
+
+        # Store ref to color
+        $scope.colorMap[circ._id] = _.sample colors
+
+        $scope.circles.push circ
 
 
-    for i in [0...numCircles]
-      circ = new Circle 
-        radius: circleSizes.big/2
-        position: [$scope.dims.w/2 + Math.random()*0.0000001, $scope.dims.h/2 + Math.random()*0.0000001]
-        # position: [width + Math.random()*0.0000001, height + Math.random()*0.000001]
-      # console.log circ
 
-      circ._id = Math.random()
+      # Attach all the things
+      for circ, idx in $scope.circles 
+        # Make the spring
+        circ.spring = new Spring
+          anchor: centerParticle#[0.5,0.5]#[width/2, height/2]
+          period: 300
+          dampingRatio: 0.3
+          # forceFunction: Spring.FORCE_FUNCTIONS.FENE
 
-      # Fader and scaler for icons
-      circ.iconScaler = new Transitionable 1
-      circ.iconFader = new Transitionable 1
+        # Attach the repulsion
+        # physicsEngine.attach repulse, $scope.circles, circ
+        # Attach the spring
+        physicsEngine.attach circ.spring, circ 
+        # Attach the collisions
+        physicsEngine.attach collision, $scope.circles, circ
 
-      # Add
-      physicsEngine.addBody circ 
+        # Attach to the next spring
+        prev = idx - 1
+        if prev < 0
+          prev = $scope.circles.length - 1
+        next = idx + 1
+        if next is $scope.circles.length
+          next = 0
+        
+        # circ.neighborSprings.prev = physicsEngine.attach repulse, $scope.circles[prev], circ
+      setSprings()
 
-      # Store ref to color
-      $scope.colorMap[circ._id] = _.sample colors
+      initWalls()
+      console.log 'reset called'
+      $scope.reset()
 
-      $scope.circles.push circ
+    initWalls = ->
+      # Walls
+      walls = [
+        new Wall
+          normal: [1,0,0]
+          distance: 0
+          restitution: 0.1
+      ,
+        new Wall
+          normal: [-1,0,0]
+          distance: $scope.dims.w
+          restitution: 0.1
+      ,
+        new Wall
+          normal: [0,1,0]
+          distance: 0
+          restitution: 0.1
+      ,
+        new Wall
+          normal: [0,-1,0]
+          distance: $scope.dims.h
+          restitution: 0.1
+      ]
+
+      # Attach to the circles
+      physicsEngine.attach walls, $scope.circles
+
+
 
     # Center information
 
@@ -314,32 +375,7 @@ angular.module('portfolioApp')
         return idx
 
 
-    # Attach all the things
-    for circ, idx in $scope.circles 
-      # Make the spring
-      circ.spring = new Spring
-        anchor: centerParticle#[0.5,0.5]#[width/2, height/2]
-        period: 300
-        dampingRatio: 0.3
-        # forceFunction: Spring.FORCE_FUNCTIONS.FENE
-
-      # Attach the repulsion
-      # physicsEngine.attach repulse, $scope.circles, circ
-      # Attach the spring
-      physicsEngine.attach circ.spring, circ 
-      # Attach the collisions
-      physicsEngine.attach collision, $scope.circles, circ
-
-      # Attach to the next spring
-      prev = idx - 1
-      if prev < 0
-        prev = $scope.circles.length - 1
-      next = idx + 1
-      if next is $scope.circles.length
-        next = 0
-      
-      # circ.neighborSprings.prev = physicsEngine.attach repulse, $scope.circles[prev], circ
-    setSprings()
+    
 
 
     # Hack to hook repulsion strength up to a transitionable
@@ -363,7 +399,7 @@ angular.module('portfolioApp')
         duration: 200
         curve: 'easeInOut'
       , ->
-        console.log 'done'
+        console.log 'done expanding'
 
       # Make the spring distance big
       for circ in $scope.circles
@@ -401,28 +437,7 @@ angular.module('portfolioApp')
     # expand()
 
 
-    # Walls
-    walls = [
-      new Wall
-        normal: [1,0,0]
-        distance: 0
-        restitution: 0.1
-    ,
-      new Wall
-        normal: [-1,0,0]
-        distance: $scope.dims.w
-        restitution: 0.1
-    ,
-      new Wall
-        normal: [0,1,0]
-        distance: 0
-        restitution: 0.1
-    ,
-      new Wall
-        normal: [0,-1,0]
-        distance: $scope.dims.h
-        restitution: 0.1
-    ]
+
 
     $scope.circleClicked = (circle, idx) ->
 
@@ -492,7 +507,7 @@ angular.module('portfolioApp')
 
       setSprings()
 
-    $scope.reset()
+    # $scope.reset()
 
       # $scope.projectName.spring.setOptions
       #   anchor: circle
@@ -541,10 +556,10 @@ angular.module('portfolioApp')
         curve: 'easeInOut'
       zoomedIn = false
 
-    $scope.zoomIn()
+    # $scope.zoomIn()
 
 
-    physicsEngine.attach walls, $scope.circles
+    
 
     # $timeout ->
     #   a = new Transitionable [200,0]
@@ -571,7 +586,11 @@ angular.module('portfolioApp')
         method: 'snap'
         dampingRatio: 0.2
         period: 300
-      , $done
+      , ->
+        $done()
+        $scope.$apply ->
+          $scope.showVideo = true
+          console.log 'set to true'
 
     # $timeout ->
 
@@ -581,7 +600,11 @@ angular.module('portfolioApp')
         method: 'snap'
         dampingRatio: 0.5
         period: 200
-      , $done
+      , ->
+        $done()
+        $scope.$apply ->
+          $scope.showVideo = false
+          console.log 'set to false'
 
     $scope.animateCardHalt = ->
       console.log 'halt called!'
@@ -630,4 +653,55 @@ angular.module('portfolioApp')
 
       halt: ($done) ->
         $scope.nameOpacity.halt()
+
+    # Wait until the background image loads
+    $timeout ->
+      # Check for background image surface
+      backgroundImageSurface = $famous.find('.backgroundImageSurface')[0]
+      console.log backgroundImageSurface
+      if backgroundImageSurface?.renderNode?._element
+        console.log 'already deployed'
+        # Element has been deployed, check if loaded
+        if backgroundImageSurface.renderNode._element.complete
+          # Element has been loaded
+          console.log 'complete=true'
+          begin()
+        else
+          # Wait for load
+          backgroundImageSurface.renderNode._element.onload = ->
+            console.log 'onload fired'
+            begin()
+      else
+        console.log 'waiting for deploy...'
+        backgroundImageSurface.renderNode.on 'deploy', ->
+          console.log 'deploy happened'
+          begin()
+          # console.log backgroundImageSurface?.renderNode._element.complete
+
+    # bootstrap = ->
+    #   backgroundImageSurface = $famous.find('.backgroundImageSurface')[0]
+    #   console.log "loaded is #{backgroundImageSurface?.renderNode._element?.complete}"
+    #   $timeout bootstrap, 100
+      # unless backgroundImageSurface?.renderNode._element
+      #   console.warn 'no element found - are you using '
+      #   $timeout bootstrap, 100
+      # else
+      #   if backgroundImageSurface.renderNode._element.complete
+      #     # kick things off
+      #     begin()
+      #   else
+      #     backgroundImageSurface.renderNode._element.onload = begin
+
+    # bootstrap()
+
+    begin = ->
+      # alert 'starting now!'
+      console.log 'let us begin'
+      # Fade in the background image
+      initPhysics()
+      $scope.imageFader.set 1,
+        duration: 500
+        curve: 'easeInOut'
+      , ->
+        console.log 'init happening'
 
