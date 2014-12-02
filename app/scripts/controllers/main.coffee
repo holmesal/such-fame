@@ -15,6 +15,7 @@ angular.module('portfolioApp')
     Collision = $famous['famous/physics/constraints/Collision']
     Repulsion = $famous['famous/physics/forces/Repulsion']
     Spring = $famous['famous/physics/forces/Spring']
+    RotationalSpring = $famous['famous/physics/forces/RotationalSpring']
     Force = $famous['famous/physics/forces/Force']
     Distance = $famous['famous/physics/constraints/Distance']
     Vector = $famous['famous/math/Vector']
@@ -200,10 +201,18 @@ angular.module('portfolioApp')
           dampingRatio: 0.3
           # forceFunction: Spring.FORCE_FUNCTIONS.FENE
 
+        # circ.rotationalSpring = new RotationalSpring
+        #   anchor: [0.5,0.5]
+        #   period: 3000
+        #   dampingRation: 0.1
+        #   length: 300
+
         # Attach the repulsion
         # physicsEngine.attach repulse, $scope.circles, circ
         # Attach the spring
         physicsEngine.attach circ.spring, circ 
+        # Attach the rotational spring
+        # physicsEngine.attach circ.rotationalSpring, circ
         # Attach the collisions
         physicsEngine.attach collision, $scope.circles, circ
 
@@ -298,28 +307,29 @@ angular.module('portfolioApp')
     #     # slowSpin()
     # slowSpin()
 
-    spin = (first = false) ->
-      console.log "it is now #{Date.now()/1000}"
-      period = 3000
-      duration = 300
-      if first
-        # Sleep until nearest whole period
-        millis = period - ((Date.now()/1000) % (period/1000)) * 1000
-        console.log "it is now #{Date.now()/1000} - sleeping #{millis} until #{Date.now()/1000 + millis/1000}"
-        $timeout spin, millis
-      else
-        # Pick a random location
-        location = ((Date.now()/100000) % 1) * 3.14
-        location = Math.random()*3.14
-        console.log 'spinning to ' + location
-        $scope.spinner.set location,
-          duration: duration
-          curve: 'easeInOut'
-        , ->
-          # spin()
-          delay = Math.random() * 10000
-          delay = period - duration
-          $timeout spin, delay
+    # spin = (first = false) ->
+    #   console.log "it is now #{Date.now()/1000}"
+    #   period = 3000
+    #   duration = 300
+    #   if first
+    #     # Sleep until nearest whole period
+    #     millis = period - ((Date.now()/1000) % (period/1000)) * 1000
+    #     console.log "it is now #{Date.now()/1000} - sleeping #{millis} until #{Date.now()/1000 + millis/1000}"
+    #     $timeout spin, millis
+    #   else
+    #     # Pick a random location
+    #     location = ((Date.now()/100000) % 1) * 3.14
+    #     location = Math.random()*3.14
+    #     console.log 'spinning to ' + location
+    #     $scope.spinner.set location,
+    #       duration: duration
+    #       curve: 'easeInOut'
+    #     , ->
+    #       # spin()
+    #       delay = Math.random() * 10000
+    #       delay = period - duration
+    #       $timeout spin, delay
+
     # spin true
 
 
@@ -519,12 +529,14 @@ angular.module('portfolioApp')
         if wait 
           circ.iconScaler.delay 2500
           circ.iconFader.delay 2500
+          damp = 0.3
         else
           circ.iconScaler.delay 50
+          damp = 1
 
         circ.iconScaler.set 1,
           method: 'snap'
-          dampingRatio: 0.3
+          dampingRatio: damp
           period: 300
         circ.iconFader.set 1,
           duration: 100
@@ -778,8 +790,18 @@ angular.module('portfolioApp')
 
 
 
-    $interval ->
+    $timeout ->
+      console.log 'IMGIMG'
       circ = _.sample $scope.circles 
+      # console.log circ
+      # circ.rotationalSpring.setOptions
+      #   anchor: [0,1000,0]
+      #   length: 100
+      # circ.applyTorque [0,.001,0]
+      # newPos = new Transitionable circ.position
+      # circ.setPosition newPos
+      # newPos.set [0,0],
+      #   duration: 5000
       # circ.applyTorque new Vector [0,0.1,0]
 
       # repulse.setOptions
@@ -797,5 +819,5 @@ angular.module('portfolioApp')
       #   length: 20
 
       # console.log 
-    , 2000
+    , 4000
 
