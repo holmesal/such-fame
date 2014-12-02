@@ -21,6 +21,7 @@ body
   // background-size: cover
   // background-attachment: center center
   text-align: center
+  box-sizing: border-box
   p 
     height: 100%
     text-align: center
@@ -81,3 +82,30 @@ body
     // max-width: 400px
     margin-left: auto
     margin-right: auto
+
+  .links
+    margin-top: 50px
+
+    .link
+      margin-top: 20px
+      display: block
+      border: 1px solid $black
+      $pad: 18px
+      padding-top: $pad 
+      padding-bottom: $pad
+
+      color: $black
+      text-decoration: none
+
+  .videoWrapper
+    position: relative
+    padding-bottom: 56.25%
+    height: 0
+    background-color: #F6F6F6
+
+    iframe
+      position: absolute
+      top: 0
+      left: 0
+      width: 100%
+      height: 100%
