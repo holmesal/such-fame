@@ -29,11 +29,25 @@ angular.module('portfolioApp')
       icon: 'images/icons/hashtag.svg'
       description: 'Awesome group chat for all of the thingsss'
       template: 'views/projects/hashtag.html'
+      size: [20,true]
     ,
       name: 'Hero'
       icon: 'images/icons/hero.svg'
       description: 'Humanitarian emergency response UAV'
       template: 'views/projects/hero.html'
+      size: [50,true]
+    ,
+      name: 'Shortwave'
+      icon: 'images/icons/shortwave.svg'
+      description: 'A chat room with a 100-foot range'
+      template: 'views/projects/shortwave.html'
+      size: [40,true]
+    ,
+      name: 'hey i\'m alonso'
+      icon: 'images/icons/alonso.svg'
+      description: ''
+      template: 'views/projects/alonso.html'
+      size: [35,true]
     ]
 
     numCircles = $scope.projects.length#6
@@ -150,6 +164,10 @@ angular.module('portfolioApp')
       # console.log circ
 
       circ._id = Math.random()
+
+      # Fader and scaler for icons
+      circ.iconScaler = new Transitionable 1
+      circ.iconFader = new Transitionable 1
 
       # Add
       physicsEngine.addBody circ 
@@ -422,6 +440,12 @@ angular.module('portfolioApp')
               dampingRatio: 0.5
             circ.setRadius circleSizes.small/2
 
+            # Fade and hide the icons
+            circ.iconScaler.set 0.3,
+              duration: 200
+            circ.iconFader.set 0,
+              duration: 200
+
           # Circle to remain
           else
 
@@ -454,6 +478,12 @@ angular.module('portfolioApp')
             dampingRatio: 0.3
 
         circ.setRadius circleSizes.big/2
+
+        circ.iconScaler.delay 50
+        circ.iconScaler.set 1,
+          duration: 200
+        circ.iconFader.set 1,
+          duration: 100
 
       repulse.setOptions
         length: $scope.springLengths.big

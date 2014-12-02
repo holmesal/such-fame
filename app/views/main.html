@@ -12,8 +12,8 @@
       <!-- Rotate -->
       <fa-modifier fa-rotate-z="spinner.get()">
         <fa-modifier ng-repeat="circle in circles" fa-opacity="circle.opacity.get()" fa-size="circle.size" fa-origin="[0.5,0.5]" fa-translate="circle">
-          <fa-modifier fa-origin="[0.5,0.5]" fa-align="[0.5,0.5]">
-            <fa-image-surface fa-image-url="{{projects[$index].icon}}" fa-size="[12,true]" ></fa-image-surface>
+          <fa-modifier fa-origin="[0.5,0.5]" fa-align="[0.5,0.5]" fa-scale="circle.iconScaler.get()" fa-opacity="circle.iconFader.get()">
+            <fa-image-surface fa-image-url="{{projects[$index].icon}}" fa-size="{{projects[$index].size}}" ></fa-image-surface>
           </fa-modifier>
           <fa-surface fa-animate-leave="handleExit(circle, $done)" fa-click="circleClicked(circle, $index)">
             <div class="bubble" ng-style="{
