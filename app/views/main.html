@@ -92,12 +92,12 @@
   fa-animate-halt="animateCardHalt()">
 
   <fa-modifier fa-translate="cardTranslation.get()">
+    <fa-sequential-layout>
+      <fa-surface fa-background-color="'#FEFEFE'" fa-pipe-to="scrollEventHandler" fa-size="[undefined,true]">
+        <div class="project" ng-include="project.template"></div>
 
-    <fa-surface fa-background-color="'#FEFEFE'" fa-pipe-to="scrollEventHandler" fa-size="[undefined,true]">
-      <div class="project" ng-include="project.template">
-    </div>
-
-    </fa-surface>
+      </fa-surface>
+    </fa-sequential-layout>
 
 </fa-modifier>
 </fa-view>
