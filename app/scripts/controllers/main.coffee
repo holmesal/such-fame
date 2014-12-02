@@ -1,7 +1,7 @@
 'use strict'
 
 angular.module('portfolioApp')
-  .controller 'MainCtrl', ($scope, $famous, $timeout, $window) ->
+  .controller 'MainCtrl', ($scope, $famous, $timeout, $interval, $window) ->
 
     # Famous init
     EventHandler = $famous['famous/core/EventHandler']
@@ -155,18 +155,31 @@ angular.module('portfolioApp')
 
     initPhysics = ->
 
+      rotate = Math.random() * Math.PI
+      console.log "rotate is #{rotate}"
+
       for i in [0...numCircles]
+        # Compute the ideal angle
+        angle = ((2*Math.PI*i) / (numCircles)) + rotate
+        # Add a random rotation 
+        console.log "Deploying circle #{i} at angle #{angle * 180 / Math.PI}"
+        offset = 
+          x: 20 * Math.cos angle
+          y: 20 * Math.sin angle
         circ = new Circle 
           radius: circleSizes.big/2
-          position: [$scope.dims.w/2 + Math.random()*0.0000001, $scope.dims.h/2 + Math.random()*0.0000001]
+          position: [$scope.dims.w/2 + offset.x, $scope.dims.h/2 + offset.y]
           # position: [width + Math.random()*0.0000001, height + Math.random()*0.000001]
         # console.log circ
 
         circ._id = Math.random()
 
         # Fader and scaler for icons
-        circ.iconScaler = new Transitionable 1
-        circ.iconFader = new Transitionable 1
+        circ.iconScaler = new Transitionable 0.7
+        circ.iconFader = new Transitionable 0
+
+        # Fader for the entire circle
+        circ.fader = new Transitionable 1
 
         # Add
         physicsEngine.addBody circ 
@@ -202,12 +215,12 @@ angular.module('portfolioApp')
         if next is $scope.circles.length
           next = 0
         
-        # circ.neighborSprings.prev = physicsEngine.attach repulse, $scope.circles[prev], circ
+
       setSprings()
 
       initWalls()
       console.log 'reset called'
-      $scope.reset()
+      $scope.reset true
 
     initWalls = ->
       # Walls
@@ -443,9 +456,11 @@ angular.module('portfolioApp')
 
       $scope.project = $scope.projects[idx]
 
+      circle.visited = true
+
       unless $scope.selected
         $scope.selected = true
-        for circ in $scope.circles 
+        for circ, i in $scope.circles 
           # Circles to be shrunk
           unless circ is circle
             # circ.setPosition [Math.random(),Math.random()]
@@ -457,19 +472,23 @@ angular.module('portfolioApp')
 
             # Fade and hide the icons
             circ.iconScaler.set 0.3,
-              duration: 200
+              duration: 50
             circ.iconFader.set 0,
-              duration: 200
+              duration: 50
 
           # Circle to remain
           else
-
+            console.log 'circle to remain'
             circ.spring.setOptions
               anchor: [$scope.dims.w/2,topAnchor]
               dampingRatio: 0.5
               length: 0
 
             circ.setRadius circleSizes.big/2
+
+            # make the circle sharp
+            circ.fader.set 1,
+              duration: 200
 
         console.log "circle #{idx} clicked!"
 
@@ -484,21 +503,49 @@ angular.module('portfolioApp')
       
 
 
-    $scope.reset = ->
+    $scope.reset = (wait=false) ->
       $scope.selected = false
+
+
+
       for circ in $scope.circles 
         circ.spring.setOptions
             anchor: centerParticle
-            length: $scope.springLengths.big * silverRatio
+            length: $scope.springLengths.big * silverRatio * 1
             dampingRatio: 0.3
 
         circ.setRadius circleSizes.big/2
 
-        circ.iconScaler.delay 50
+        if wait 
+          circ.iconScaler.delay 2500
+          circ.iconFader.delay 2500
+        else
+          circ.iconScaler.delay 50
+
         circ.iconScaler.set 1,
-          duration: 200
+          method: 'snap'
+          dampingRatio: 0.3
+          period: 300
         circ.iconFader.set 1,
           duration: 100
+          curve: 'easeInOut'
+        # $timeout ->
+        # circ.iconFader.delay 2000
+        # do (circ) ->
+        #   $timeout ->
+        #     console.log 'setting icon fader!'
+        #     circ.iconFader.set 1,
+        #       duration: 100
+        #   , 5000
+        # , 2000
+
+        # Fade the circle if visited
+        if circ.visited
+          circ.fader.set 0.3,
+            duration: 200
+        # else
+        #   circ.fader.set 1,
+        #     duration: 200
 
       repulse.setOptions
         length: $scope.springLengths.big
@@ -506,6 +553,21 @@ angular.module('portfolioApp')
       # $timeout setSprings, 100
 
       setSprings()
+
+      # Have all the circles been visited?
+      if (circ.visited for circ in $scope.circles when circ.visited).length is $scope.circles.length 
+        # Reset all
+        console.log 'resetting all!'
+        for circ in $scope.circles 
+          circ.visited = false
+          # circ.fader.delay 2000
+          do (circ) ->
+            $timeout ->
+              circ.applyForce new Vector [Math.random()*0.05-0.025,-0.1,0]
+              circ.fader.set 1,
+                curve: 'easeInOut'
+                duration: 300
+            , 2000
 
     # $scope.reset()
 
@@ -557,6 +619,15 @@ angular.module('portfolioApp')
       zoomedIn = false
 
     # $scope.zoomIn()
+
+
+    $scope.bumpCircle = (circ) ->
+      console.log 'bump!'
+      # unless $scope.selected
+      #   console.log circ
+      #   circ.iconFader.set 0.5,
+      #     duration: 300
+        # circ.applyForce new Vector [0,-0.005,0]
 
 
     
@@ -704,4 +775,27 @@ angular.module('portfolioApp')
         curve: 'easeInOut'
       , ->
         console.log 'init happening'
+
+
+
+    $interval ->
+      circ = _.sample $scope.circles 
+      # circ.applyTorque new Vector [0,0.1,0]
+
+      # repulse.setOptions
+      #   length: Math.random()*700
+      #   dampingRatio: 0.11
+      #   period: 700
+
+      # setSprings()
+
+      # circ = _.sample $scope.circles
+      # console.log circ
+      # spring = physicsEngine.getAgent(_.sample(circ.neighborSprings))
+      # orig = spring.options.length
+      # spring.setOptions
+      #   length: 20
+
+      # console.log 
+    , 2000
 

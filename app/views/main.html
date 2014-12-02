@@ -11,11 +11,11 @@
     <fa-modifier fa-perspective="1000">
       <!-- Rotate -->
       <fa-modifier fa-rotate-z="spinner.get()">
-        <fa-modifier ng-repeat="circle in circles" fa-opacity="circle.opacity.get()" fa-size="circle.size" fa-origin="[0.5,0.5]" fa-translate="circle">
+        <fa-modifier ng-repeat="circle in circles" fa-opacity="circle.fader.get()" fa-size="circle.size" fa-origin="[0.5,0.5]" fa-translate="circle">
           <fa-modifier fa-origin="[0.5,0.5]" fa-align="[0.5,0.5]" fa-scale="circle.iconScaler.get()" fa-opacity="circle.iconFader.get()">
             <fa-image-surface fa-image-url="{{projects[$index].icon}}" fa-size="{{projects[$index].size}}" ></fa-image-surface>
           </fa-modifier>
-          <fa-surface fa-animate-leave="handleExit(circle, $done)" fa-click="circleClicked(circle, $index)">
+          <fa-surface fa-animate-leave="handleExit(circle, $done)" fa-click="circleClicked(circle, $index)" fa-mouseover="bumpCircle(circle)">
             <div class="bubble" ng-style="{
               border: '1px solid ' + stroke,
               zbackgroundColor: colorMap[circle._id],
@@ -29,6 +29,7 @@
         <!-- surface to catch clicks -->
         <fa-modifier fa-translate="[{{cornerPosition[0]}},{{cornerPosition[1]}}, 9999]" fa-origin="[0.5,0.5]">
           <fa-surface 
+            class="clickCatcher"
             fa-background-color="'zrgba(0,0,0,0.1)'" 
             fa-align="[0.5,0.5]" 
             fa-size="[100,100]"
