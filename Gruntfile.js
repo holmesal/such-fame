@@ -225,10 +225,10 @@ module.exports = function (grunt) {
       css: ['<%= yeoman.dist %>/styles/{,*/}*.css'],
       js: ['<%= yeoman.dist %>/scripts/**/*.js'],
       options: {
-        assetsDirs: ['<%= yeoman.dist %>'],
+        assetsDirs: ['<%= yeoman.dist %>', '<%= yeoman.dist %>/images'],
         patterns: {
           js: [
-            [/(.*\.svg)/, 'replacing icons defined in coffeescript']
+            [/(images\/.*?\.(?:gif|jpeg|jpg|png|webp|svg))/gm, 'Update the JS to reference our revved images']
           ]
         }
       }
@@ -345,7 +345,8 @@ module.exports = function (grunt) {
     // Concat some templates
     ngtemplates: {
       portfolioApp: {
-        src: 'app/views/**/*.html',
+        cwd: 'app',
+        src: 'views/**/*.html',
         dest: '.tmp/scripts/template.js',
         options: {
           usemin: '<%= yeoman.dist %>/scripts/scripts.js'
