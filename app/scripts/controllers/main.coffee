@@ -52,7 +52,7 @@ angular.module('portfolioApp')
     ,
       name: 'EROS'
       icon: 'images/icons/satellite.svg'
-      description: 'In-flight satellite and aircraft camera calibration'
+      description: 'In-flight satellite camera calibration'
       template: 'views/projects/satellite.html'
       size: [26,true]
     ]
