@@ -3,6 +3,7 @@ Just a little portfolio app to play around with famo.us.
 TODO
 ===
 
+* kill overscroll
 * use a fa-sequential-layout anywhere where things might lazy-load in
 * finalize list of projects/circles & write copy
 * add https://www.npmjs.org/package/grunt-angular-templates to cache templates

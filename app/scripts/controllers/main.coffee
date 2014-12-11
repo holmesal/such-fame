@@ -49,6 +49,12 @@ angular.module('portfolioApp')
       description: ''
       template: 'views/projects/alonso.html'
       size: [36,true]
+    ,
+      name: 'EROS'
+      icon: 'images/icons/satellite.svg'
+      description: 'In-flight satellite and aircraft camera calibration'
+      template: 'views/projects/satellite.html'
+      size: [26,true]
     ]
 
     numCircles = $scope.projects.length#6
