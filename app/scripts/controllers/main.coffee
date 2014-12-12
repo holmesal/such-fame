@@ -48,7 +48,7 @@ angular.module('portfolioApp')
       icon: 'images/icons/alonso.svg'
       description: ''
       template: 'views/projects/alonso.html'
-      size: [36,true]
+      size: [true,34]
     ,
       name: 'EROS'
       icon: 'images/icons/satellite.svg'

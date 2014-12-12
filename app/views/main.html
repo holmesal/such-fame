@@ -15,7 +15,7 @@
           <fa-modifier fa-origin="[0.5,0.5]" fa-align="[0.5,0.5]" fa-scale="circle.iconScaler.get()" fa-opacity="circle.iconFader.get()">
             <fa-image-surface fa-image-url="{{projects[$index].icon}}" fa-size="{{projects[$index].size}}" ></fa-image-surface>
           </fa-modifier>
-          <fa-surface fa-animate-leave="handleExit(circle, $done)" fa-click="circleClicked(circle, $index)" fa-mouseover="bumpCircle(circle)">
+          <fa-surface fa-animate-leave="handleExit(circle, $done)" fa-click="circleClicked(circle, $index)" fa-mouseover="bumpCircle(circle)" fa-pipe-to="scrollEventHandler">
             <div class="bubble" ng-style="{
               border: '1px solid ' + stroke,
               zbackgroundColor: colorMap[circle._id],
@@ -34,6 +34,7 @@
             fa-align="[0.5,0.5]" 
             fa-size="[100,100]"
             fa-click="reset()"
+            fa-pipe-to="scrollEventHandler"
           ></fa-surface>
         </fa-modifier>
       </fa-modifier>
