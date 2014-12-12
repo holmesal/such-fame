@@ -1,7 +1,7 @@
 'use strict'
 
 angular.module('portfolioApp')
-  .controller 'MainCtrl', ($scope, $famous, $timeout, $interval, $window) ->
+  .controller 'MainCtrl', ($scope, $famous, $timeout, $interval, $window, $route) ->
 
     # Famous init
     EventHandler = $famous['famous/core/EventHandler']
@@ -61,13 +61,21 @@ angular.module('portfolioApp')
     circleSizes = 
       big: 70
       small: 5
+
     $scope.circleSize = circleSizes.big
+
     $scope.dims =
       w: $window.innerWidth
       h: $window.innerHeight
+    topAnchor = 0
+    calcDims = ->
+      topAnchor = $scope.dims.h * 0.2
 
-    topAnchor = $scope.dims.h * 0.2
+      # How much space between the bottom of the screen and the popup card
+      $scope.bottomCardPadding = $scope.dims.h * 0.4
 
+      # $scope.bottomCardPadding = 100 if $scope.bottomCardPadding > 100
+    calcDims()
     # console.log $scope.dims
     # width = $window.innerWidth#320
     # height = $window.innerHeight# 320
@@ -81,8 +89,6 @@ angular.module('portfolioApp')
     # colors = ["#FEFEFE"]
     $scope.stroke = "#FEFEFE"
 
-    # How much space between the bottom of the screen and the popup card
-    $scope.bottomCardPadding = $scope.dims.h * 0.4
 
     # Zoom levels
     levels = 
@@ -129,24 +135,38 @@ angular.module('portfolioApp')
 
     # Center set of information - adding these as particles, because I want to hook them up to springs later
 
+
     # Center particle
     centerParticle = new Particle 
-      position: [$scope.dims.w/2, $scope.dims.h/2]
 
     # Corner particle
-    $scope.cornerPosition = [$scope.dims.w-50, 50]
+    # $scope.cornerPosition = [$scope.dims.w-50, 50]
     cornerParticle = new Particle 
-      position: $scope.cornerPosition
+      # position: $scope.cornerPosition
     # console.log cornerParticle
 
     # Name
-    namePosition = topAnchor + circleSizes.big + 30
+    # namePosition = topAnchor + circleSizes.big + 30
     $scope.projectName = new Particle 
-      position: [$scope.dims.w/2, namePosition]
+      # position: [$scope.dims.w/2, namePosition]
     # $scope.projectName.spring = new Spring 
     #   length: 0
     #   anchor: [centerParticle]
     physicsEngine.addBody $scope.projectName
+    
+
+    setParticlePositions = ->
+      # Center particle position
+      centerParticle.setPosition [$scope.dims.w/2, $scope.dims.h/2]
+
+      # Corner particle position
+      $scope.cornerPosition = [$scope.dims.w-50, 50]
+      cornerParticle.setPosition $scope.cornerPosition
+
+      # Name
+      $scope.projectName.setPosition [$scope.dims.w/2, topAnchor + circleSizes.big + 30]
+
+    setParticlePositions()
 
     # # Description
     # descriptionPosition = namePosition + 100
@@ -156,6 +176,24 @@ angular.module('portfolioApp')
     # #   length: 0
     # #   anchor: [centerParticle]
     # physicsEngine.addBody $scope.projectDescription
+
+    angular.element($window).bind 'resize', ->
+      $route.reload()
+      # console.log 'window resize'
+      # # Update the location of the center particle
+      # $scope.dims =
+      #   w: $window.innerWidth
+      #   h: $window.innerHeight
+      # calcDims()
+
+      # # centerParticle.setPosition [$scope.dims.w/2, $scope.dims.h/2]
+
+      # setParticlePositions()
+
+      # $scope.reset()
+
+      # $scope.$apply()
+
 
 
 

@@ -5,12 +5,12 @@
 </fa-modifier>
 
 <!-- Container -->
-<fa-modifier fa-translate="[0,0,1000]">
+<fa-modifier>
   <fa-modifier fa-size="[{{dims.w}},{{dims.h}}]">
     <!-- Modifier to move origin to center -->
     <fa-modifier fa-perspective="1000">
       <!-- Rotate -->
-      <fa-modifier fa-rotate-z="spinner.get()">
+      <fa-modifier fa-rotate-z="spinner.get()"  fa-translate="[0,0,1000]">
         <fa-modifier ng-repeat="circle in circles" fa-opacity="circle.fader.get()" fa-size="circle.size" fa-origin="[0.5,0.5]" fa-translate="circle">
           <fa-modifier fa-origin="[0.5,0.5]" fa-align="[0.5,0.5]" fa-scale="circle.iconScaler.get()" fa-opacity="circle.iconFader.get()">
             <fa-image-surface fa-image-url="{{projects[$index].icon}}" fa-size="{{projects[$index].size}}" ></fa-image-surface>
@@ -75,7 +75,7 @@
       
     </fa-modifier>
     <!-- Surface to catch background clicks -->
-    <fa-surface fa-background-color="'z#333333'"  fa-click="zoomIn()" fa-pipe-to="scrollEventHandler"></fa-surface>
+    <fa-surface fa-background-color="'#333333'"  fa-click="zoomIn()" fa-pipe-to="scrollEventHandler"></fa-surface>
   </fa-modifier>
 
 </fa-modifier>
