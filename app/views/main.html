@@ -8,19 +8,33 @@
 <fa-modifier>
   <fa-modifier fa-size="[{{dims.w}},{{dims.h}}]">
     <!-- Modifier to move origin to center -->
-    <fa-modifier fa-perspective="1000">
+    <fa-modifier fa-perspective="1000"  fa-translate="[0,0,1000]">
       <!-- Rotate -->
-      <fa-modifier fa-rotate-z="spinner.get()"  fa-translate="[0,0,1000]">
-        <fa-modifier ng-repeat="circle in circles" fa-opacity="circle.fader.get()" fa-size="circle.size" fa-origin="[0.5,0.5]" fa-translate="circle">
-          <fa-modifier fa-origin="[0.5,0.5]" fa-align="[0.5,0.5]" fa-scale="circle.iconScaler.get()" fa-opacity="circle.iconFader.get()">
-            <fa-image-surface fa-image-url="{{projects[$index].icon}}" fa-size="{{projects[$index].size}}" ></fa-image-surface>
+      <fa-modifier fa-rotate-z="spinner.get()">
+        <fa-modifier 
+          ng-repeat="circle in circles" 
+          fa-opacity="circle.fader.get()" 
+          fa-size="circle.size" 
+          fa-origin="[0.5,0.5]" 
+          fa-translate="circle">
+          <fa-modifier 
+            fa-origin="[0.5,0.5]" 
+            fa-align="[0.5,0.5]" 
+            fa-scale="circle.iconScaler.get()" 
+            fa-opacity="circle.iconFader.get()" 
+            fa-translate="[0,0,-1]">
+            <fa-image-surface 
+              fa-image-url="{{projects[$index].icon}}" 
+              fa-size="{{projects[$index].size}}"
+              ></fa-image-surface>
           </fa-modifier>
           <fa-surface 
             fa-animate-leave="handleExit(circle, $done)" 
             fa-click="circleClicked(circle, $index)" 
             fa-touchstart="circleClicked(circle, $index)" 
             fa-mouseover="bumpCircle(circle)" 
-            fa-pipe-to="scrollEventHandler">
+            fa-pipe-to="scrollEventHandler"
+            zfa-background-color="'red'">
             <div class="bubble" ng-style="{
               border: '1px solid ' + stroke,
               zbackgroundColor: colorMap[circle._id],
@@ -32,10 +46,10 @@
         </fa-modifier>
 
         <!-- surface to catch clicks -->
-        <fa-modifier fa-translate="[{{cornerPosition[0]}},{{cornerPosition[1]}}, 9999]" fa-origin="[0.5,0.5]">
+        <fa-modifier fa-translate="[{{cornerPosition[0]}},{{cornerPosition[1]}}, 1500]" fa-origin="[0.5,0.5]">
           <fa-surface 
             class="clickCatcher"
-            fa-background-color="'zrgba(0,0,0,0.1)'" 
+            zfa-background-color="'rgba(0,0,0,0.1)'" 
             fa-align="[0.5,0.5]" 
             fa-size="[100,100]"
             fa-click="reset()"
@@ -60,7 +74,9 @@
         fa-animate-enter="nameAnimation.enter($done)"
         fa-animate-leave="nameAnimation.leave($done)"
         fa-animate-halt="nameAnimation.halt($done)">
-        <fa-surface fa-size="[undefined,true]">
+        <fa-surface 
+          fa-size="[undefined,true]"
+          fa-pipe-to="scrollEventHandler">
           <p class="projectName">{{project.name}}</p>
           <p class="projectDescription">{{project.description}}</p>
         </fa-surface>
@@ -75,7 +91,9 @@
       
     </fa-modifier>
     <!-- Surface to catch background clicks -->
-    <fa-surface fa-background-color="'#333333'"  fa-click="zoomIn()" fa-pipe-to="scrollEventHandler"></fa-surface>
+    <fa-modifier fa-translate="[0,0,999]">
+      <fa-surface zfa-background-color="'#333333'"  fa-click="zoomIn()" fa-pipe-to="scrollEventHandler"></fa-surface>
+    </fa-modifier>
   </fa-modifier>
 
 </fa-modifier>

@@ -74,7 +74,9 @@ angular.module('portfolioApp')
       # How much space between the bottom of the screen and the popup card
       $scope.bottomCardPadding = $scope.dims.h * 0.4
 
-      # $scope.bottomCardPadding = 100 if $scope.bottomCardPadding > 100
+      minspace = topAnchor + 170
+      if $scope.dims.h - $scope.bottomCardPadding < minspace
+        $scope.bottomCardPadding = $scope.dims.h - minspace
     calcDims()
     # console.log $scope.dims
     # width = $window.innerWidth#320
@@ -734,7 +736,7 @@ angular.module('portfolioApp')
     $scope.cardTranslation = new Transitionable [0,$scope.bottomCardPadding]
     $scope.cardMoving = false
     $scope.animateCardEnter = ($done) ->
-      $scope.cardTranslation.set [0,0],
+      $scope.cardTranslation.set [0,0,1500],
         method: 'snap'
         dampingRatio: 0.2
         period: 300
@@ -748,7 +750,7 @@ angular.module('portfolioApp')
 
 
     $scope.animateCardLeave = ($done) ->
-      $scope.cardTranslation.set [0,$scope.bottomCardPadding],
+      $scope.cardTranslation.set [0,$scope.bottomCardPadding,1500],
         method: 'snap'
         dampingRatio: 0.5
         period: 200
