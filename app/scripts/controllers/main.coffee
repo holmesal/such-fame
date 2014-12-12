@@ -470,131 +470,147 @@ angular.module('portfolioApp')
 
     $scope.circleClicked = (circle, idx) ->
 
-      # Set the scrollview offset back to 0
-      resetScrollview()
+      # TODO - write a good touch/click accumulator for famo.us - basically, I want to run something on tap or click, and the scroll handling is a bit too touchy so I need to use touchstart :-z
+      unless $scope.clicking
+        $scope.clicking = true
 
-      $scope.project = $scope.projects[idx]
+        # Set the scrollview offset back to 0
+        resetScrollview()
 
-      circle.visited = true
+        $scope.project = $scope.projects[idx]
 
-      unless $scope.selected
-        $scope.selected = true
-        for circ, i in $scope.circles 
-          # Circles to be shrunk
-          unless circ is circle
-            # circ.setPosition [Math.random(),Math.random()]
-            circ.spring.setOptions
-              anchor: cornerParticle
-              length: $scope.springLengths.small * silverRatio
-              dampingRatio: 0.5
-            circ.setRadius circleSizes.small/2
+        circle.visited = true
 
-            # Fade and hide the icons
-            circ.iconScaler.set 0.3,
-              duration: 50
-            circ.iconFader.set 0,
-              duration: 50
+        unless $scope.selected
+          $scope.selected = true
+          for circ, i in $scope.circles 
+            # Circles to be shrunk
+            unless circ is circle
+              # circ.setPosition [Math.random(),Math.random()]
+              circ.spring.setOptions
+                anchor: cornerParticle
+                length: $scope.springLengths.small * silverRatio
+                dampingRatio: 0.5
+              circ.setRadius circleSizes.small/2
 
-          # Circle to remain
-          else
-            console.log 'circle to remain'
-            circ.spring.setOptions
-              anchor: [$scope.dims.w/2,topAnchor]
-              dampingRatio: 0.5
-              length: 0
+              # Fade and hide the icons
+              circ.iconScaler.set 0.3,
+                duration: 50
+              circ.iconFader.set 0,
+                duration: 50
 
-            circ.setRadius circleSizes.big/2
+            # Circle to remain
+            else
+              console.log 'circle to remain'
+              circ.spring.setOptions
+                anchor: [$scope.dims.w/2,topAnchor]
+                dampingRatio: 0.5
+                length: 0
 
-            # make the circle sharp
-            circ.fader.set 1,
-              duration: 200
+              circ.setRadius circleSizes.big/2
 
-        console.log "circle #{idx} clicked!"
+              # make the circle sharp
+              circ.fader.set 1,
+                duration: 200
 
-        repulse.setOptions
-          length: $scope.springLengths.small
+          console.log "circle #{idx} clicked!"
 
-        # Reset the radial springs, excluding the current one
-        setSprings idx
+          repulse.setOptions
+            length: $scope.springLengths.small
 
-      else
-        $scope.reset()
+          # Reset the radial springs, excluding the current one
+          setSprings idx
+
+        else
+          $scope.reset()
+
+      $timeout ->
+        $scope.clicking = false
+      , 300
 
     resetScrollview = ->
+      $scope.scrollView.setVelocity 0
       $scope.scrollView.setOffset 0
+      $scope.scrollView.setPosition 0
       
 
 
     $scope.reset = (wait=false) ->
-      $scope.selected = false
 
-      # Reset the scroll view
-      resetScrollview()
+      # Could be called multiple times by a click vs a touchstart
+      unless $scope.resetting
+        $scope.resetting = true
+        $scope.selected = false
+
+        # Reset the scroll view
+        resetScrollview()
 
 
 
-      for circ in $scope.circles 
-        circ.spring.setOptions
-            anchor: centerParticle
-            length: $scope.springLengths.big * silverRatio * 1
-            dampingRatio: 0.3
-
-        circ.setRadius circleSizes.big/2
-
-        if wait 
-          circ.iconScaler.delay 2500
-          circ.iconFader.delay 2500
-          damp = 0.3
-        else
-          circ.iconScaler.delay 50
-          damp = 1
-
-        circ.iconScaler.set 1,
-          method: 'snap'
-          dampingRatio: damp
-          period: 300
-        circ.iconFader.set 1,
-          duration: 100
-          curve: 'easeInOut'
-        # $timeout ->
-        # circ.iconFader.delay 2000
-        # do (circ) ->
-        #   $timeout ->
-        #     console.log 'setting icon fader!'
-        #     circ.iconFader.set 1,
-        #       duration: 100
-        #   , 5000
-        # , 2000
-
-        # Fade the circle if visited
-        if circ.visited
-          circ.fader.set 0.3,
-            duration: 200
-        # else
-        #   circ.fader.set 1,
-        #     duration: 200
-
-      repulse.setOptions
-        length: $scope.springLengths.big
-
-      # $timeout setSprings, 100
-
-      setSprings()
-
-      # Have all the circles been visited?
-      if (circ.visited for circ in $scope.circles when circ.visited).length is $scope.circles.length 
-        # Reset all
-        console.log 'resetting all!'
         for circ in $scope.circles 
-          circ.visited = false
-          # circ.fader.delay 2000
-          do (circ) ->
-            $timeout ->
-              circ.applyForce new Vector [Math.random()*0.05-0.025,-0.1,0]
-              circ.fader.set 1,
-                curve: 'easeInOut'
-                duration: 300
-            , 2000
+          circ.spring.setOptions
+              anchor: centerParticle
+              length: $scope.springLengths.big * silverRatio * 1
+              dampingRatio: 0.3
+
+          circ.setRadius circleSizes.big/2
+
+          if wait 
+            circ.iconScaler.delay 2500
+            circ.iconFader.delay 2500
+            damp = 0.3
+          else
+            circ.iconScaler.delay 50
+            damp = 1
+
+          circ.iconScaler.set 1,
+            method: 'snap'
+            dampingRatio: damp
+            period: 300
+          , ->
+            $scope.resetting = false
+          circ.iconFader.set 1,
+            duration: 100
+            curve: 'easeInOut'
+          # $timeout ->
+          # circ.iconFader.delay 2000
+          # do (circ) ->
+          #   $timeout ->
+          #     console.log 'setting icon fader!'
+          #     circ.iconFader.set 1,
+          #       duration: 100
+          #   , 5000
+          # , 2000
+
+          # Fade the circle if visited
+          if circ.visited
+            circ.fader.set 0.3,
+              duration: 200
+          # else
+          #   circ.fader.set 1,
+          #     duration: 200
+
+        repulse.setOptions
+          length: $scope.springLengths.big
+
+        # $timeout setSprings, 100
+
+        setSprings()
+
+        # Have all the circles been visited?
+        if (circ.visited for circ in $scope.circles when circ.visited).length is $scope.circles.length 
+          # Reset all
+          console.log 'resetting all!'
+          for circ in $scope.circles 
+            circ.visited = false
+            # circ.fader.delay 2000
+            do (circ) ->
+              $timeout ->
+                circ.applyForce new Vector [Math.random()*0.05-0.025,-0.1,0]
+                circ.fader.set 1,
+                  curve: 'easeInOut'
+                  duration: 300
+              , 2000
 
     # $scope.reset()
 
