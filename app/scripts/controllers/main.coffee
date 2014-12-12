@@ -470,6 +470,9 @@ angular.module('portfolioApp')
 
     $scope.circleClicked = (circle, idx) ->
 
+      # Set the scrollview offset back to 0
+      resetScrollview()
+
       $scope.project = $scope.projects[idx]
 
       circle.visited = true
@@ -516,11 +519,17 @@ angular.module('portfolioApp')
 
       else
         $scope.reset()
+
+    resetScrollview = ->
+      $scope.scrollView.setOffset 0
       
 
 
     $scope.reset = (wait=false) ->
       $scope.selected = false
+
+      # Reset the scroll view
+      resetScrollview()
 
 
 
@@ -713,6 +722,7 @@ angular.module('portfolioApp')
     $timeout ->
       $scope.scrollView = $famous.find('.outerScrollView')[0].renderNode
       console.log $scope.scrollView
+      console.log 'scroll view ^^^'
     , 0
 
     # $timeout ->
