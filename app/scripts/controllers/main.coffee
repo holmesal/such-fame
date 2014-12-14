@@ -274,7 +274,6 @@ angular.module('portfolioApp')
       setSprings()
 
       initWalls()
-      console.log 'reset called'
       $scope.reset true
 
     initWalls = ->
