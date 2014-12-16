@@ -4,9 +4,9 @@ TODO
 ===
 
 
-* hashtag image
-* use a fa-sequential-layout anywhere where things might lazy-load in
+* hashtag image (include mobile device)
 * find the HERO presentation video
+* use a fa-sequential-layout anywhere where things might lazy-load in
 * package navigator into a directive, clean up the main controller a bit
 * add rotational drifting motion
 * convert circle scaling from a switch to a transitionable
