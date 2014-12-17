@@ -4,7 +4,7 @@ TODO
 ===
 
 
-* hashtag image (include mobile device)
+* try a new approach for image loading events - make an onload directive, emit load event on rootscope, catch it in a controller, and force famo.us to re-compute the render tree
 * find the HERO presentation video
 * use a fa-sequential-layout anywhere where things might lazy-load in
 * package navigator into a directive, clean up the main controller a bit
