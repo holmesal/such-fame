@@ -638,8 +638,8 @@ angular.module('portfolioApp')
 
         repulse.setOptions
           length: $scope.springLengths.big
-
-        # $timeout setSprings, 100
+          # length: new Transitionable $scope.springLengths.big,
+          #   duration: 10000
 
         setSprings()
 
