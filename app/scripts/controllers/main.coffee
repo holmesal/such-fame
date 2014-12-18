@@ -1,5 +1,12 @@
 'use strict'
 
+###*
+ * If you're reading this - I'm sorry. This is an extremely messy controller, but this site evolved over several weeks, and there's a lot of cruft left over. Here's how I'm planning to refactor this:
+ * First, the top "navigation" interaction can be broken out into a directive. It'll emit "select" events that will by caught by this controller.
+ * Part of the "card" UI will also be contained in a directive.
+ * The goal is to get most of the transitionables out of this controller and into directives - this controller should only be responsible for stitching the two together.
+###
+
 angular.module('portfolioApp')
   .controller 'MainCtrl', ($scope, $famous, $timeout, $interval, $window, $route) ->
 
