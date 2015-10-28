@@ -15,7 +15,7 @@ define(function(require, exports, module) {
     var View = require('../core/View');
 
     /**
-     * A dynamic view that can show or hide different renerables with transitions.
+     * A dynamic view that can show or hide different renderables with transitions.
      * @class RenderController
      * @constructor
      * @param {Options} [options] An object of configurable options.
@@ -41,9 +41,11 @@ define(function(require, exports, module) {
         this.inTransformMap = RenderController.DefaultMap.transform;
         this.inOpacityMap = RenderController.DefaultMap.opacity;
         this.inOriginMap = RenderController.DefaultMap.origin;
+        this.inAlignMap = RenderController.DefaultMap.align;
         this.outTransformMap = RenderController.DefaultMap.transform;
         this.outOpacityMap = RenderController.DefaultMap.opacity;
         this.outOriginMap = RenderController.DefaultMap.origin;
+        this.outAlignMap = RenderController.DefaultMap.align;
 
         this._output = [];
     }
@@ -63,7 +65,8 @@ define(function(require, exports, module) {
         opacity: function(progress) {
             return progress;
         },
-        origin: null
+        origin: null,
+        align: null
     };
 
     function _mappedState(map, state) {
@@ -121,6 +124,21 @@ define(function(require, exports, module) {
     };
 
     /**
+     * inAlignFrom sets the accessor for the state of the align used in transitioning in renderables.
+     * @method inAlignFrom
+     * @param {Function|Transitionable} align A function that returns an align from outside closure, or a
+     * a transitionable that manages align (a two value array of numbers between zero and one).
+     * @chainable
+     */
+    RenderController.prototype.inAlignFrom = function inAlignFrom(align) {
+        if (align instanceof Function) this.inAlignMap = align;
+        else if (align && align.get) this.inAlignMap = align.get.bind(align);
+        else throw new Error('inAlignFrom takes only function or getter object');
+        //TODO: tween align
+        return this;
+    };
+
+    /**
      * outTransformFrom sets the accessor for the state of the transform used in transitioning out renderables.
      * @method outTransformFrom
      * @param {Function|Transitionable} transform  A function that returns a transform from outside closure, or a
@@ -162,6 +180,21 @@ define(function(require, exports, module) {
         else if (origin && origin.get) this.outOriginMap = origin.get.bind(origin);
         else throw new Error('outOriginFrom takes only function or getter object');
         //TODO: tween origin
+        return this;
+    };
+
+    /**
+     * outAlignFrom sets the accessor for the state of the align used in transitioning out renderables.
+     * @method outAlignFrom
+     * @param {Function|Transitionable} align A function that returns an align from outside closure, or a
+     * a transitionable that manages align (a two value array of numbers between zero and one).
+     * @chainable
+     */
+    RenderController.prototype.outAlignFrom = function outAlignFrom(align) {
+        if (align instanceof Function) this.outAlignMap = align;
+        else if (align && align.get) this.outAlignMap = align.get.bind(align);
+        else throw new Error('outAlignFrom takes only function or getter object');
+        //TODO: tween align
         return this;
     };
 
@@ -220,8 +253,10 @@ define(function(require, exports, module) {
             var modifier = new Modifier({
                 transform: this.inTransformMap ? _mappedState.bind(this, this.inTransformMap, state) : null,
                 opacity: this.inOpacityMap ? _mappedState.bind(this, this.inOpacityMap, state) : null,
-                origin: this.inOriginMap ? _mappedState.bind(this, this.inOriginMap, state) : null
+                origin: this.inOriginMap ? _mappedState.bind(this, this.inOriginMap, state) : null,
+                align: this.inAlignMap ? _mappedState.bind(this, this.inAlignMap, state) : null
             });
+
             var node = new RenderNode();
             node.add(modifier).add(renderable);
 
@@ -262,6 +297,7 @@ define(function(require, exports, module) {
         modifier.transformFrom(this.outTransformMap ? _mappedState.bind(this, this.outTransformMap, state) : null);
         modifier.opacityFrom(this.outOpacityMap ? _mappedState.bind(this, this.outOpacityMap, state) : null);
         modifier.originFrom(this.outOriginMap ? _mappedState.bind(this, this.outOriginMap, state) : null);
+        modifier.alignFrom(this.outAlignMap ? _mappedState.bind(this, this.outAlignMap, state) : null);
 
         if (this._outgoingRenderables.indexOf(renderable) < 0) this._outgoingRenderables.push(renderable);
 

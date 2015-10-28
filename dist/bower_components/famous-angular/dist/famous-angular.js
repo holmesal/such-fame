@@ -196,7 +196,7 @@ ngFameApp.provider('$famous', function() {
   var IS_FA = /^FA\-.*/;
   /**
     Util functions.
-  */ 
+  */
 
   window.$famousUtil = _modules.util = {
     /**
@@ -205,6 +205,7 @@ ngFameApp.provider('$famous', function() {
    * @return {boolean}
    */
     isASurface : function (element) {
+      if(!element[0]) return false;
 
       return IS_A_SURFACE.test(element[0].tagName);
     },
@@ -215,6 +216,8 @@ ngFameApp.provider('$famous', function() {
       @return {boolean}
     */
     isFaElement : function (element) {
+      if(!element[0]) return false;
+
       //short-circuit most common case
       if(IS_FA.test(element[0].tagName)) return true;
 
@@ -254,7 +257,7 @@ ngFameApp.provider('$famous', function() {
         return _modules.util.camelCase(name.replace(PREFIX_REGEXP, ''));
     }
   };
-  
+
   this.$get = function() {
 
     /**
@@ -284,7 +287,6 @@ ngFameApp.provider('$famous', function() {
     return _modules;
   };
 });
-
 
 /**
  * @ngdoc service
@@ -382,8 +384,8 @@ ngFameApp.provider('$famous', function() {
 angular.module('famous.angular')
   .config(['$provide', function($provide) {
     // Hook into the animation system to emit ng-class syncers to surfaces
-    $provide.decorator('$animate', ['$delegate', '$rootScope', '$famous', '$parse', '$famousDecorator',
-                            function($delegate,   $rootScope,   $famous,   $parse,   $famousDecorator) {
+    $provide.decorator('$animate', ['$delegate', '$rootScope', '$famous', '$parse', '$famousDecorator', '$q',
+                            function($delegate,   $rootScope,   $famous,   $parse,   $famousDecorator, $q) {
 
       var Timer   = $famous['famous/utilities/Timer'];
 
@@ -405,7 +407,10 @@ angular.module('famous.angular')
        * considered "enabled" which we do not need.
        */
       var animationHandlers = {
-        enabled: $delegate.enabled
+        enabled: $delegate.enabled,
+        $$removeClassImmediately: $delegate.$$removeClassImmediately,
+        $$addClassImmediately: $delegate.$$addClassImmediately,
+        $$setClassImmediately: $delegate.$$setClassImmediately
       };
 
       angular.forEach(['addClass', 'removeClass'], function(classManipulator) {
@@ -437,7 +442,7 @@ angular.module('famous.angular')
          * directively to their Surfaces whenever possible.
          */
         animationHandlers[classManipulator] = function(element, className, done) {
-         
+
           $delegate[classManipulator](element, className, done);
           if($famous.util.isFaElement(element)){
             var isolate = _getIsolate(element.scope());
@@ -475,7 +480,7 @@ angular.module('famous.angular')
       // because Angular has already negotiated the list of items to add
       // and items to remove. Manually loop through both lists.
       animationHandlers.setClass = function(element, add, remove, done) {
-        
+
         $delegate.setClass(element, add, remove, done);
 
         if ($famous.util.isASurface(element)) {
@@ -507,7 +512,7 @@ angular.module('famous.angular')
           var self = this;
           var selfArgs = arguments;
           var delegateFirst = (operation === 'enter');
-
+          var promise;
 
           var elemScope = element.scope();
 
@@ -518,7 +523,13 @@ angular.module('famous.angular')
           var isolate = _getIsolate(elemScope);
 
           if (delegateFirst === true) {
-             $delegate[operation].apply(this, arguments);
+            promise = $delegate[operation].apply(this, arguments);
+          } else {
+            var defer = $q.defer();
+            Timer.setTimeout(function() {
+              defer.resolve();
+            }, 0);
+            promise = defer.promise;
           }
 
            // Detect if an animation is currently running
@@ -585,6 +596,8 @@ angular.module('famous.angular')
               Timer.setTimeout(doneCallback, animationDuration);
             }
           });
+
+          return promise;
         };
       });
 
@@ -809,7 +822,11 @@ angular.module('famous.angular')
       for (var i = 0; i < pipes.length; i++) {
         for (var j = 0; j < targets.length; j++) {
           if (targets[j] !== undefined && pipes[i] !== undefined) {
-            targets[j][method](pipes[i]);
+            if (targets[j]._isModifier){
+              targets[j]._object[method](pipes[i]);
+            } else {
+              targets[j][method](pipes[i]);
+            }
           }
         }
       }
@@ -853,7 +870,7 @@ angular.module('famous.angular')
  * @example
  * ```html
  * <fa-modifier
- *   fa-rotate-y="rRotation(t.get())"
+ *   fa-rotate-y="yRotation(t.get())"
  *   fa-translate="translation(t.get())"
  * >
  *   ...
@@ -1312,7 +1329,7 @@ angular.module('famous.angular')
  *     restrict: 'A',
  *     scope: false,
  *     priority: 16,
- *     compile: function(tElement, tAttrs, transclude) {
+ *     compile: function(tElement, tAttrs) {
  *       var Transitionable = $famous['famous/transitions/Transitionable'];
  *       return {
  *         pre: function(scope, element, attrs) {
@@ -1369,7 +1386,7 @@ angular.module('famous.angular')
     return {
       restrict: 'EA',
       scope: true,
-      compile: function (tElement, tAttrs, transclude) {
+      compile: function (tElement, tAttrs) {
         var Transform = $famous['famous/core/Transform'];
         var Transitionable = $famous['famous/transitions/Transitionable'];
         var Easing = $famous['famous/transitions/Easing'];
@@ -1791,7 +1808,7 @@ angular.module('famous.angular')
       transclude: true,
       scope: true,
       restrict: 'EA',
-      compile: function (tElement, tAttrs, transclude) {
+      compile: function (tElement, tAttrs) {
         return {
           pre: function (scope, element, attrs) {
             var isolate = $famousDecorator.ensureIsolate(scope);
@@ -1852,7 +1869,7 @@ angular.module('famous.angular')
               evt.stopPropagation();
             });
           },
-          post: function (scope, element, attrs) {
+          post: function (scope, element, attrs, ctrl, transclude) {
 
             var isolate = $famousDecorator.ensureIsolate(scope);
             transclude(scope, function (clone) {
@@ -1896,7 +1913,7 @@ angular.module('famous.angular')
       transclude: true,
       template: '<canvas class="fa-canvas-surface"></canvas>',
       restrict: 'EA',
-      compile: function(tElem, tAttrs, transclude){
+      compile: function(tElem, tAttrs){
         return {
           pre: function(scope, element, attrs){
             var isolate = $famousDecorator.ensureIsolate(scope);
@@ -1922,7 +1939,7 @@ angular.module('famous.angular')
             });
                         
           },
-          post: function(scope, element, attrs){
+          post: function(scope, element, attrs, ctrl, transclude){
             var isolate = $famousDecorator.ensureIsolate(scope);
 
             var updateContent = function() {
@@ -2062,7 +2079,7 @@ angular.module('famous.angular')
       restrict: 'E',
       transclude: true,
       scope: true,
-      compile: function(tElem, tAttrs, transclude){
+      compile: function(tElem, tAttrs){
         return  {
           pre: function(scope, element, attrs){
             var isolate = $famousDecorator.ensureIsolate(scope);
@@ -2081,7 +2098,7 @@ angular.module('famous.angular')
               }
             );
           },
-          post: function(scope, element, attrs){
+          post: function(scope, element, attrs, ctrl, transclude){
             var isolate = $famousDecorator.ensureIsolate(scope);
 
             transclude(scope, function(clone) {
@@ -2112,9 +2129,9 @@ angular.module('famous.angular')
       restrict: 'EA',
       priority: 2,
       scope: true,
-      compile: function (tElement, tAttrs, transclude) {
+      compile: function (tElement, tAttrs) {
         return {
-          post: function (scope, element, attrs) {
+          post: function (scope, element, attrs, ctrl, transclude) {
             var isolate = $famousDecorator.ensureIsolate(scope);
 
             var RenderNode = $famous['famous/core/RenderNode'];
@@ -2191,7 +2208,7 @@ angular.module('famous.angular')
       priority: 512, //higher than ui-view and ng-include, because if it's lower it will
                      //get recompiled every time those templates change
 
-      compile: function(tElement, tAttrs, transclude){
+      compile: function(tElement, tAttrs){
         var EdgeSwapper = $famous['famous/views/EdgeSwapper'];
         return {
           pre: function(scope, element, attrs){
@@ -2274,7 +2291,7 @@ angular.module('famous.angular')
       restrict: 'E',
       transclude: true,
       scope: true,
-      compile: function (tElem, tAttrs, transclude) {
+      compile: function (tElem, tAttrs) {
         return {
           pre: function (scope, element, attrs) {
             var isolate = $famousDecorator.ensureIsolate(scope);
@@ -2327,7 +2344,7 @@ angular.module('famous.angular')
             );
 
           },
-          post: function (scope, element, attrs) {
+          post: function (scope, element, attrs, ctrl, transclude) {
             var isolate = $famousDecorator.ensureIsolate(scope);
 
             transclude(scope, function (clone) {
@@ -2410,7 +2427,7 @@ angular.module('famous.angular')
         restrict: 'E',
         transclude: true,
         scope: true,
-        compile: function (tElem, tAttrs, transclude) {
+        compile: function (tElem, tAttrs) {
           return {
             pre: function (scope, element, attrs) {
               var isolate = $famousDecorator.ensureIsolate(scope);
@@ -2454,7 +2471,7 @@ angular.module('famous.angular')
                 }
               );
             },
-            post: function (scope, element, attrs) {
+            post: function (scope, element, attrs, ctrl, transclude) {
               var isolate = $famousDecorator.ensureIsolate(scope);
               transclude(scope, function (clone) {
                 element.find('div').append(clone);
@@ -2563,7 +2580,7 @@ angular.module('famous.angular')
       restrict: 'E',
       transclude: true,
       scope: true,
-      compile: function (tElem, tAttrs, transclude) {
+      compile: function (tElem, tAttrs) {
         return  {
           pre: function (scope, element, attrs) {
             var isolate = $famousDecorator.ensureIsolate(scope);
@@ -2616,7 +2633,7 @@ angular.module('famous.angular')
             );
 
           },
-          post: function (scope, element, attrs) {
+          post: function (scope, element, attrs, ctrl, transclude) {
             var isolate = $famousDecorator.ensureIsolate(scope);
 
             transclude(scope, function(clone) {
@@ -2777,7 +2794,7 @@ angular.module('famous.angular')
       restrict: 'E',
       transclude: true,
       scope: true,
-      compile: function (tElem, tAttrs, transclude) {
+      compile: function (tElem, tAttrs) {
         var HeaderFooterLayout = $famous["famous/views/HeaderFooterLayout"];
         var RenderNode = $famous["famous/core/RenderNode"];
         return {
@@ -2825,7 +2842,7 @@ angular.module('famous.angular')
             );
 
           },
-          post: function (scope, element, attrs) {
+          post: function (scope, element, attrs, ctrl, transclude) {
             var isolate = $famousDecorator.ensureIsolate(scope);
 
             transclude(scope, function (clone) {
@@ -2892,7 +2909,7 @@ angular.module('famous.angular')
       scope: true,
       template: '<div class="fa-image-surface"></div>',
       restrict: 'EA',
-      compile: function (tElem, tAttrs, transclude) {
+      compile: function (tElem, tAttrs) {
         return {
           pre: function (scope, element, attrs) {
             var isolate = $famousDecorator.ensureIsolate(scope);
@@ -3314,7 +3331,7 @@ angular.module('famous.angular')
               });
 
               renderNode.on('click', function(event, touchend) {
-                scope.$apply(function() {
+                scope.$evalAsync(function() {
                   clickHandler(scope, {$event: (touchend || event)});
                 });
               });
@@ -3841,6 +3858,7 @@ angular.module('famous.angular')
  * @param {Number|Function|Particle} faPerspective  -  Number or array returning a number to which this modifier's perspective (focusZ) should be bound.
  * @param {Transform} faTransform - Manually created Famo.us Transform object (an array) that can be passed to the modifier.  *Will override all other transform attributes.*
  * @param {Number|Function|Transitionable|Particle} faOpacity  -  Number or function returning a number to which this Modifier's opacity should be bound
+ * @param {Array|Function|Transitionable|Particle} faProportions  -  Two element array of [percent of width, percent of height] or function returning an array of numbers to which this Modifier's proportions should be bound
  * @param {Array|Function|Transitionable|Particle} faSize  -  Array of numbers (e.g. [100, 500] for the x- and y-sizes) or function returning an array of numbers to which this Modifier's size should be bound
  * @param {Array|Function|Transitionable|Particle} faOrigin  -  Array of numbers (e.g. [.5, 0] for the x- and y-origins) or function returning an array of numbers to which this Modifier's origin should be bound
  * @param {Array|Function|Transitionable|Particle} faAlign  -  Array of numbers (e.g. [.5, 0] for the x- and y-aligns) or function returning an array of numbers to which this Modifier's align should be bound
@@ -3854,7 +3872,7 @@ angular.module('famous.angular')
   <file name="index.html">
   <fa-app ng-controller="ModifierCtrl">
       <fa-modifier fa-opacity=".25" fa-skew="myScopeSkewVariable"
-                   fa-translate="[25, 50, 2]" 
+                   fa-translate="[25, 50, 2]"
                    fa-scale="myScopeFunctionThatReturnsAnArray">
         <!-- Child elements of this fa-modifier will be affected by the values above -->
         <fa-surface>I'm translucent, skewed, and translated</fa-surface>
@@ -4174,7 +4192,7 @@ angular.module('famous.angular')
     <script>
       angular.module('faModifierExampleApp', ['famous.angular'])
           .controller('ModifierCtrl', ['$scope', '$famous', function($scope, $famous) {
-            
+
             var Transform = $famous['famous/core/Transform'];
 
             $scope.skewFunc = function() {
@@ -4224,7 +4242,7 @@ angular.module('famous.angular')
                    fa-size="[100, 100]">
         <fa-surface fa-background-color="'red'"></fa-surface>
       </fa-modifier>
-      
+
       <fa-modifier fa-transform-order="['rotateZ', 'translate']"
                    fa-rotate-z="0.3"
                    fa-translate="[100, 0, 0]"
@@ -4258,7 +4276,7 @@ angular.module('famous.angular')
            <fa-surface fa-background-color="'red'"></fa-surface>
          </fa-modifier>
       </fa-modifier>
-      
+
        <fa-modifier fa-rotate-z=".6">
          <fa-modifier fa-translate="[100, 100]" fa-size="[100, 100]">
            <fa-surface fa-background-color="'blue'"></fa-surface>
@@ -4290,9 +4308,9 @@ angular.module('famous.angular')
       restrict: 'EA',
       priority: 2,
       scope: true,
-      compile: function (tElement, tAttrs, transclude) {
+      compile: function (tElement, tAttrs) {
         return {
-          post: function (scope, element, attrs) {
+          post: function (scope, element, attrs, ctrl, transclude) {
             var isolate = $famousDecorator.ensureIsolate(scope);
 
             var RenderNode = $famous['famous/core/RenderNode'];
@@ -4364,7 +4382,7 @@ angular.module('famous.angular')
 
               if(!transforms.length) return undefined;
               else if (transforms.length === 1) return transforms[0];
-              else return Transform.multiply.apply(this, transforms);
+              else return transforms.reduce(Transform.multiply);
             };
 
             var _alignFn = angular.noop;
@@ -4404,6 +4422,18 @@ angular.module('famous.angular')
               else return ret;
             };
 
+            var _proportionsFn = angular.noop;
+            attrs.$observe('faProportions', function () {
+              _proportionsFn = $parse(attrs.faProportions);
+            });
+            isolate.getProportions = function () {
+              var ret = _proportionsFn(scope);
+              if(ret instanceof Function) return ret();
+              else if(ret instanceof Object && ret.get !== undefined) return ret.get();
+              else if(ret instanceof Particle) return _unwrapParticle(ret);
+              else return ret;
+            };
+
             var _originFn = angular.noop;
             attrs.$observe('faOrigin', function () {
               _originFn = $parse(attrs.faOrigin);
@@ -4419,6 +4449,7 @@ angular.module('famous.angular')
             isolate.modifier = new Modifier({
               transform: isolate.getTransform,
               size: isolate.getSize,
+              proportions: isolate.getProportions,
               opacity: isolate.getOpacity,
               origin: isolate.getOrigin,
               align: isolate.getAlign
@@ -4428,7 +4459,7 @@ angular.module('famous.angular')
 
             $famousDecorator.addRole('renderable',isolate);
             isolate.show();
-            
+
             $famousDecorator.sequenceWith(scope, function(data) {
               isolate.renderNode.add(data.renderGate);
             });
@@ -4512,7 +4543,13 @@ angular.module('famous.angular')
                         scope.$watch(function () {
                             return scope.$eval(attrs.faOptions);
                         }, function () {
-                            isolate.renderNode.setOptions(scope.$eval(attrs.faOptions));
+                            if(isolate.renderNode.setOptions){
+                                isolate.renderNode.setOptions(scope.$eval(attrs.faOptions));
+                            }else if(isolate.modifier && isolate.modifier.setOptions){
+                                isolate.modifier.setOptions(scope.$eval(attrs.faOptions));
+                            }else{
+                                throw new Error("fa-options is not supported on " + element[0].tagName);
+                            }
                         }, true);
                     }
                 };
@@ -5320,7 +5357,7 @@ angular.module('famous.angular')
       transclude: true,
       scope: true,
       restrict: 'EA',
-      compile: function(tElement, tAttrs, transclude){
+      compile: function(tElement, tAttrs){
         return {
           pre: function(scope, element, attrs){
             var isolate = $famousDecorator.ensureIsolate(scope);
@@ -5351,7 +5388,7 @@ angular.module('famous.angular')
             });
 
           },
-          post: function(scope, element, attrs){
+          post: function(scope, element, attrs, ctrl, transclude){
             var isolate = $famousDecorator.ensureIsolate(scope);
 
             transclude(scope, function(clone) {
@@ -5629,7 +5666,7 @@ angular.module('famous.angular')
       restrict: 'E',
       transclude: true,
       scope: true,
-      compile: function(tElem, tAttrs, transclude){
+      compile: function(tElem, tAttrs){
         return  {
           pre: function(scope, element, attrs){
             var isolate = $famousDecorator.ensureIsolate(scope);
@@ -5647,11 +5684,19 @@ angular.module('famous.angular')
             isolate.show();
 
 
+            var _postDigestScheduled = false;
+
             var updateScrollview = function(init){
+
+              //perf: don't both updating if we've already
+              //scheduled an update for the end of this digest
+              if(_postDigestScheduled === true) return;
+
               // Synchronize the update on the next digest cycle
               // (if this isn't done, $index will not be up-to-date
               // and sort order will be incorrect.)
               scope.$$postDigest(function(){
+                _postDigestScheduled = false;
                 _children.sort(function(a, b){
                   return a.index - b.index;
                 });
@@ -5673,6 +5718,8 @@ angular.module('famous.angular')
                 var viewSeq = new ViewSequence(options);
                 isolate.renderNode.sequenceFrom(viewSeq);
               });
+
+              _postDigestScheduled = true;
             };
 
             $famousDecorator.sequenceWith(
@@ -5697,7 +5744,7 @@ angular.module('famous.angular')
             );
 
           },
-          post: function(scope, element, attrs){
+          post: function(scope, element, attrs, ctrl, transclude){
             var isolate = $famousDecorator.ensureIsolate(scope);
 
             transclude(scope, function(clone) {
@@ -5780,7 +5827,7 @@ angular.module('famous.angular')
       restrict: 'E',
       transclude: true,
       scope: true,
-      compile: function (tElem, tAttrs, transclude) {
+      compile: function (tElem, tAttrs) {
         window.$f = $famous;
         return {
           pre: function (scope, element, attrs) {
@@ -5798,17 +5845,28 @@ angular.module('famous.angular')
             $famousDecorator.addRole('renderable',isolate);
             isolate.show();
 
+            var _postDigestScheduled = false;
+
             var _updateSequentialLayout = function() {
-              _children.sort(function(a, b) {
-                return a.index - b.index;
-              });
-              isolate.renderNode.sequenceFrom(function(_children) {
-                var _ch = [];
-                angular.forEach(_children, function(c, i) {
-                  _ch[i] = c.renderGate;
+              //perf: don't both updating if we've already
+              //scheduled an update for the end of this digest
+              if(_postDigestScheduled === true) return;
+
+              scope.$$postDigest(function(){
+                _postDigestScheduled = false;
+                _children.sort(function(a, b) {
+                  return a.index - b.index;
                 });
-                return _ch;
-              }(_children));
+                isolate.renderNode.sequenceFrom(function(_children) {
+                  var _ch = [];
+                  angular.forEach(_children, function(c, i) {
+                    _ch[i] = c.renderGate;
+                  });
+                  return _ch;
+                }(_children));
+              });
+
+              _postDigestScheduled = true;
             };
 
             $famousDecorator.sequenceWith(
@@ -5832,7 +5890,7 @@ angular.module('famous.angular')
             );
 
           },
-          post: function (scope, element, attrs) {
+          post: function (scope, element, attrs, ctrl, transclude) {
             var isolate = $famousDecorator.ensureIsolate(scope);
 
             transclude(scope, function (clone) {
@@ -6078,10 +6136,10 @@ angular.module('famous.angular')
       transclude: true,
       template: '<div class="fa-surface"></div>',
       restrict: 'EA',
-      compile: function(tElem, tAttrs, transclude){
+      compile: function(tElem, tAttrs){
         return {
           pre: function(scope, element, attrs){
-            
+
             var isolate = $famousDecorator.ensureIsolate(scope);
             // console.log("fa-surface", isolate);
             var Surface = $famous['famous/core/Surface'];
@@ -6102,7 +6160,7 @@ angular.module('famous.angular')
             );
 
             //TODO:  duplicate of fa-image-surface's _propToFaProp function.
-            //       Refactor into a util object/service? 
+            //       Refactor into a util object/service?
             var _propToFaProp = function(prop){
               return "fa" + prop.charAt(0).toUpperCase() + prop.slice(1);
             };
@@ -6136,7 +6194,7 @@ angular.module('famous.angular')
             attrs.$observe('faSize',function () {
               isolate.renderNode.setSize(scope.$eval(attrs.faSize));
               _sizeAnimateTimeStamps.push(new Date());
-              
+
               if(_sizeAnimateTimeStamps.length > 5) {
                 if((_sizeAnimateTimeStamps[4]-_sizeAnimateTimeStamps[0]) <= 1000 ){
                   console.warn("Using fa-size on fa-surface to animate is significantly non-performant, prefer to use fa-size on an fa-modifier surrounding a fa-surface");
@@ -6155,12 +6213,20 @@ angular.module('famous.angular')
             if (attrs.class) {
               isolate.renderNode.setClasses(attrs['class'].split(' '));
             }
-            // Throw an exception if anyother famous scene graph element is added on fa-surface.            
+            if(attrs.faDeploy){
+              isolate.renderNode.on("deploy",function(){
+                var fn = scope[attrs.faDeploy];
+                if(typeof fn === 'function') {
+                  fn(attrs.faDeploy)();
+                }
+              });
+            }
+            // Throw an exception if anyother famous scene graph element is added on fa-surface.
             $famousDecorator.sequenceWith(scope, function(data) {
               throw new Error('Surfaces are leaf nodes of the Famo.us render tree and cannot accept rendernode children.  To include additional Famo.us content inside of a fa-surface, that content must be enclosed in an additional fa-app.');
             });
           },
-          post: function(scope, element, attrs){
+          post: function(scope, element, attrs, ctrl, transclude){
             var isolate = $famousDecorator.ensureIsolate(scope);
 
             var updateContent = function() {
@@ -6819,7 +6885,7 @@ angular.module('famous.angular')
           transclude: true,
           template: '<div class="fa-video-surface"></div>',
           restrict: 'EA',
-          compile: function (tElem, tAttrs, transclude) {
+          compile: function (tElem, tAttrs) {
             return {
               pre: function (scope, element, attrs) {
                 var isolate = $famousDecorator.ensureIsolate(scope);
@@ -6923,7 +6989,7 @@ angular.module('famous.angular')
       transclude: true,
       scope: true,
       restrict: 'EA',
-      compile: function(tElement, tAttrs, transclude){
+      compile: function(tElement, tAttrs){
         var View = $famous['famous/core/View'];
 
         return {
@@ -6944,7 +7010,7 @@ angular.module('famous.angular')
             });
 
           },
-          post: function(scope, element, attrs){
+          post: function(scope, element, attrs, ctrl, transclude){
             var isolate = $famousDecorator.ensureIsolate(scope);
 
             transclude(scope, function(clone) {

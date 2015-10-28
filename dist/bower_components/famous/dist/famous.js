@@ -193,7 +193,7 @@ define('famous/core/Transform',['require','exports','module'],function(require, 
     };
 
     /**
-     * Return a Transform atrix which represents the result of a transform matrix
+     * Return a Transform matrix which represents the result of a transform matrix
      *    applied after a move. This is faster than the equivalent multiply.
      *    This is equivalent to the result of:
      *
@@ -1452,7 +1452,7 @@ define('famous/core/ElementAllocator',['require','exports','module'],function(re
         }
         else {
             while (oldContainer.hasChildNodes()) {
-                container.appendChild(oldContainer.removeChild(oldContainer.firstChild));
+                container.appendChild(oldContainer.firstChild);
             }
         }
 
@@ -3162,7 +3162,12 @@ define('famous/core/Engine',['require','exports','module','./Context','./EventHa
     var Engine = {};
 
     var contexts = [];
+
     var nextTickQueue = [];
+
+    var currentFrame = 0;
+    var nextTickFrame = 0;
+
     var deferQueue = [];
 
     var lastTime = Date.now();
@@ -3197,6 +3202,9 @@ define('famous/core/Engine',['require','exports','module','./Context','./EventHa
      * @method step
      */
     Engine.step = function step() {
+        currentFrame++;
+        nextTickFrame = currentFrame;
+
         var currentTime = Date.now();
 
         // skip frame if we're over our framerate cap
@@ -3210,8 +3218,8 @@ define('famous/core/Engine',['require','exports','module','./Context','./EventHa
         eventHandler.emit('prerender');
 
         // empty the queue
-        for (i = 0; i < nextTickQueue.length; i++) nextTickQueue[i].call(this);
-        nextTickQueue.splice(0);
+        var numFunctions = nextTickQueue.length;
+        while (numFunctions--) (nextTickQueue.shift())(currentFrame);
 
         // limit total execution time for deferrable functions
         while (deferQueue.length && (Date.now() - currentTime) < MAX_DEFER_FRAME_TIME) {
@@ -3260,10 +3268,20 @@ define('famous/core/Engine',['require','exports','module','./Context','./EventHa
         window.addEventListener('touchmove', function(event) {
             event.preventDefault();
         }, true);
+
+        addRootClasses();
+    }
+    var initialized = false;
+
+    function addRootClasses() {
+        if (!document.body) {
+            Engine.nextTick(addRootClasses);
+            return;
+        }
+
         document.body.classList.add('famous-root');
         document.documentElement.classList.add('famous-root');
     }
-    var initialized = false;
 
     /**
      * Add event handler object to set of downstream handlers.
@@ -3305,17 +3323,20 @@ define('famous/core/Engine',['require','exports','module','./Context','./EventHa
     Engine.on = function on(type, handler) {
         if (!(type in eventForwarders)) {
             eventForwarders[type] = eventHandler.emit.bind(eventHandler, type);
-            if (document.body) {
-                document.body.addEventListener(type, eventForwarders[type]);
-            }
-            else {
-                Engine.nextTick(function(type, forwarder) {
-                    document.body.addEventListener(type, forwarder);
-                }.bind(this, type, eventForwarders[type]));
-            }
+
+            addEngineListener(type, eventForwarders[type]);
         }
         return eventHandler.on(type, handler);
     };
+
+    function addEngineListener(type, forwarder) {
+        if (!document.body) {
+            Engine.nextTick(addEventListener.bind(this, type, forwarder));
+            return;
+        }
+
+        document.body.addEventListener(type, forwarder);
+    }
 
     /**
      * Trigger an event, sending to all downstream handlers
@@ -3420,16 +3441,24 @@ define('famous/core/Engine',['require','exports','module','./Context','./EventHa
             el.classList.add(options.containerClass);
             needMountContainer = true;
         }
+
         var context = new Context(el);
         Engine.registerContext(context);
-        if (needMountContainer) {
-            Engine.nextTick(function(context, el) {
-                document.body.appendChild(el);
-                context.emit('resize');
-            }.bind(this, context, el));
-        }
+
+        if (needMountContainer) mount(context, el);
+
         return context;
     };
+
+    function mount(context, el) {
+        if (!document.body) {
+            Engine.nextTick(mount.bind(this, context, el));
+            return;
+        }
+
+        document.body.appendChild(el);
+        context.emit('resize');
+    }
 
     /**
      * Registers an existing context to be updated within the run loop.
@@ -3534,7 +3563,8 @@ define('famous/core/Surface',['require','exports','module','./ElementOutput'],fu
      * @param {Object} [options] default option overrides
      * @param {Array.Number} [options.size] [width, height] in pixels
      * @param {Array.string} [options.classes] CSS classes to set on target div
-     * @param {Array} [options.properties] string dictionary of HTML attributes to set on target div
+     * @param {Array} [options.properties] string dictionary of CSS properties to set on target div
+     * @param {Array} [options.attributes] string dictionary of HTML attributes to set on target div
      * @param {string} [options.content] inner (HTML) content of surface
      */
     function Surface(options) {
@@ -3858,25 +3888,29 @@ define('famous/core/Surface',['require','exports','module','./ElementOutput'],fu
             if (size[0] === undefined) size[0] = origSize[0];
             if (size[1] === undefined) size[1] = origSize[1];
             if (size[0] === true || size[1] === true) {
-                if (size[0] === true && (this._trueSizeCheck || this._size[0] === 0)) {
-                    var width = target.offsetWidth;
-                    if (this._size && this._size[0] !== width) {
-                        this._size[0] = width;
-                        this._sizeDirty = true;
+                if (size[0] === true){
+                    if (this._trueSizeCheck || (this._size[0] === 0)) {
+                        var width = target.offsetWidth;
+                        if (this._size && this._size[0] !== width) {
+                            this._size[0] = width;
+                            this._sizeDirty = true;
+                        }
+                        size[0] = width;
+                    } else {
+                        if (this._size) size[0] = this._size[0];
                     }
-                    size[0] = width;
-                } else {
-                    if (this._size) size[0] = this._size[0];
                 }
-                if (size[1] === true && (this._trueSizeCheck || this._size[1] === 0)) {
-                    var height = target.offsetHeight;
-                    if (this._size && this._size[1] !== height) {
-                        this._size[1] = height;
-                        this._sizeDirty = true;
+                if (size[1] === true){
+                    if (this._trueSizeCheck || (this._size[1] === 0)) {
+                        var height = target.offsetHeight;
+                        if (this._size && this._size[1] !== height) {
+                            this._size[1] = height;
+                            this._sizeDirty = true;
+                        }
+                        size[1] = height;
+                    } else {
+                        if (this._size) size[1] = this._size[1];
                     }
-                    size[1] = height;
-                } else {
-                    if (this._size) size[1] = this._size[1];
                 }
                 this._trueSizeCheck = false;
             }
@@ -5828,9 +5862,9 @@ define('famous/inputs/GenericSync',['require','exports','module','../core/EventH
      */
     GenericSync.register = function register(syncObject) {
         for (var key in syncObject){
-            if (registry[key]){
-                if (registry[key] === syncObject[key]) return; // redundant registration
-                else throw new Error('this key is registered to a different sync class');
+            if (registry[key]){ // skip redundant registration
+                if (registry[key] !== syncObject[key]) // only if same registered class
+                    throw new Error('Conflicting sync classes for key: ' + key);
             }
             else registry[key] = syncObject[key];
         }
@@ -5932,6 +5966,7 @@ define('famous/inputs/MouseSync',['require','exports','module','../core/EventHan
      *   mouseSync.on('end', function (e) { // react to end });
      *
      * @param [options] {Object}                An object of the following configurable options.
+     * @param [options.clickThreshold] {Number} Absolute distance from click origin that will still trigger a click.
      * @param [options.direction] {Number}      Read from a particular axis. Valid options are: undefined, 0 or 1. 0 corresponds to x, and 1 to y. Default is undefined, which allows both x and y.
      * @param [options.rails] {Boolean}         Read from axis with the greatest differential.
      * @param [options.velocitySampleLength] {Number}  Number of previous frames to check velocity against.
@@ -5956,6 +5991,14 @@ define('famous/inputs/MouseSync',['require','exports','module','../core/EventHan
         if (this.options.propogate) this._eventInput.on('mouseleave', _handleLeave.bind(this));
         else this._eventInput.on('mouseleave', _handleEnd.bind(this));
 
+        if (this.options.clickThreshold) {
+            window.addEventListener('click', function(event) {
+                if (Math.sqrt(Math.pow(this._displacement[0], 2) + Math.pow(this._displacement[1], 2)) > this.options.clickThreshold) {
+                    event.stopPropagation();
+                }
+            }.bind(this), true);
+        }
+
         this._payload = {
             delta    : null,
             position : null,
@@ -5972,10 +6015,12 @@ define('famous/inputs/MouseSync',['require','exports','module','../core/EventHan
         this._prevTime = undefined;
         this._down = false;
         this._moved = false;
+        this._displacement = [0,0];
         this._documentActive = false;
     }
 
     MouseSync.DEFAULT_OPTIONS = {
+        clickThreshold: undefined,
         direction: undefined,
         rails: false,
         scale: 1,
@@ -6017,6 +6062,10 @@ define('famous/inputs/MouseSync',['require','exports','module','../core/EventHan
             this._position = [0, 0];
             delta = [0, 0];
             velocity = [0, 0];
+        }
+
+        if (this.options.clickThreshold) {
+            this._displacement = [0,0];
         }
 
         var payload = this._payload;
@@ -6086,6 +6135,11 @@ define('famous/inputs/MouseSync',['require','exports','module','../core/EventHan
             ];
             this._position[0] += nextDelta[0];
             this._position[1] += nextDelta[1];
+        }
+
+        if (this.options.clickThreshold !== false) {
+            this._displacement[0] += diffX;
+            this._displacement[1] += diffY;
         }
 
         var payload = this._payload;
@@ -9185,7 +9239,11 @@ define('famous/physics/PhysicsEngine',['require','exports','module','../core/Eve
         var array = (body.isBody) ? this._bodies : this._particles;
         var index = array.indexOf(body);
         if (index > -1) {
-            for (var agent in this._agentData) this.detachFrom(agent.id, body);
+            for (var agentKey in this._agentData) {
+                if (this._agentData.hasOwnProperty(agentKey)) {
+                    this.detachFrom(this._agentData[agentKey].id, body);
+                }
+            }
             array.splice(index,1);
         }
         if (this.getBodies().length === 0) this._hasBodies = false;
@@ -11639,6 +11697,17 @@ define('famous/physics/constraints/Walls',['require','exports','module','./Const
         });
     };
 
+    /**
+     * Resets the walls to their starting oritentation
+     */
+    Walls.prototype.reset = function reset() {
+        var sides = this.options.sides;
+        for (var i in sides) {
+            var component = this.components[i];
+            component.options.normal.set(_SIDE_NORMALS[i]);
+        }
+    };
+
     module.exports = Walls;
 });
 
@@ -12673,6 +12742,7 @@ define('famous/physics/forces/VectorField',['require','exports','module','./Forc
      */
     VectorField.prototype.setOptions = function setOptions(options) {
         if (options.strength !== undefined) this.options.strength = options.strength;
+        if (options.direction !== undefined) this.options.direction = options.direction;
         if (options.field !== undefined) {
             this.options.field = options.field;
             _setFieldOptions.call(this, this.options.field);
@@ -14686,6 +14756,8 @@ define('famous/transitions/WallTransition',['require','exports','module','../phy
         if (def.dampingRatio === undefined) def.dampingRatio = defaults.dampingRatio;
         if (def.velocity === undefined) def.velocity = defaults.velocity;
         if (def.restitution === undefined) def.restitution = defaults.restitution;
+        if (def.drift === undefined) def.drift = Wall.DEFAULT_OPTIONS.drift;
+        if (def.slop === undefined) def.slop = Wall.DEFAULT_OPTIONS.slop;
 
         //setup spring
         this.spring.setOptions({
@@ -14695,7 +14767,9 @@ define('famous/transitions/WallTransition',['require','exports','module','../phy
 
         //setup wall
         this.wall.setOptions({
-            restitution : def.restitution
+            restitution : def.restitution,
+            drift: def.drift,
+            slop: def.slop
         });
 
         //setup particle
@@ -15196,8 +15270,9 @@ define('famous/views/ContextualView',['require','exports','module','../core/Enti
  * @copyright Famous Industries, Inc. 2014
  */
 
-define('famous/views/SequentialLayout',['require','exports','module','../core/OptionsManager','../core/Transform','../core/ViewSequence','../utilities/Utility'],function(require, exports, module) {
+define('famous/views/SequentialLayout',['require','exports','module','../core/OptionsManager','../core/Entity','../core/Transform','../core/ViewSequence','../utilities/Utility'],function(require, exports, module) {
     var OptionsManager = require('../core/OptionsManager');
+    var Entity = require('../core/Entity');
     var Transform = require('../core/Transform');
     var ViewSequence = require('../core/ViewSequence');
     var Utility = require('../utilities/Utility');
@@ -15220,6 +15295,9 @@ define('famous/views/SequentialLayout',['require','exports','module','../core/Op
         this.options = Utility.clone(this.constructor.DEFAULT_OPTIONS || SequentialLayout.DEFAULT_OPTIONS);
         this.optionsManager = new OptionsManager(this.options);
 
+        this.id = Entity.register(this);
+        this.cachedSize = [undefined, undefined];
+
         if (options) this.setOptions(options);
     }
 
@@ -15231,6 +15309,7 @@ define('famous/views/SequentialLayout',['require','exports','module','../core/Op
     SequentialLayout.DEFAULT_OUTPUT_FUNCTION = function DEFAULT_OUTPUT_FUNCTION(input, offset, index) {
         var transform = (this.options.direction === Utility.Direction.X) ? Transform.translate(offset, 0) : Transform.translate(0, offset);
         return {
+            size: this.cachedSize,
             transform: transform,
             target: input.render()
         };
@@ -15287,13 +15366,25 @@ define('famous/views/SequentialLayout',['require','exports','module','../core/Op
     };
 
     /**
-     * Generate a render spec from the contents of this component.
+     * Return the id of the component
      *
      * @private
      * @method render
-     * @return {number} Render spec for this component
+     * @return {number} id of the SequentialLayout
      */
     SequentialLayout.prototype.render = function render() {
+        return this.id;
+    };
+
+    /**
+     * Generate a render spec from the contents of this component.
+     *
+     * @private
+     * @method commit
+     * @param {Object} parentSpec parent render spec
+     * @return {Object} Render spec for this component
+     */
+    SequentialLayout.prototype.commit = function commit(parentSpec) {
         var length             = 0;
         var secondaryDirection = this.options.direction ^ 1;
         var currentNode        = this._items;
@@ -15304,6 +15395,7 @@ define('famous/views/SequentialLayout',['require','exports','module','../core/Op
         var i                  = 0;
 
         this._size = [0, 0];
+        this.cachedSize = parentSpec.size;
 
         while (currentNode) {
             item = currentNode.get();
@@ -15317,6 +15409,7 @@ define('famous/views/SequentialLayout',['require','exports','module','../core/Op
             if (itemSize) {
                 if (itemSize[this.options.direction]) length += itemSize[this.options.direction];
                 if (itemSize[secondaryDirection] > this._size[secondaryDirection]) this._size[secondaryDirection] = itemSize[secondaryDirection];
+                if (itemSize[secondaryDirection] === 0) this._size[secondaryDirection] = undefined;
             }
 
             currentNode = currentNode.getNext();
@@ -15326,7 +15419,12 @@ define('famous/views/SequentialLayout',['require','exports','module','../core/Op
 
         this._size[this.options.direction] = length;
 
-        return result;
+        return {
+            transform: parentSpec.transform,
+            origin: parentSpec.origin,
+            size: this.getSize(),
+            target: result
+        };
     };
 
     module.exports = SequentialLayout;
@@ -15806,7 +15904,7 @@ define('famous/views/RenderController',['require','exports','module','../core/Mo
     var View = require('../core/View');
 
     /**
-     * A dynamic view that can show or hide different renerables with transitions.
+     * A dynamic view that can show or hide different renderables with transitions.
      * @class RenderController
      * @constructor
      * @param {Options} [options] An object of configurable options.
@@ -15832,9 +15930,11 @@ define('famous/views/RenderController',['require','exports','module','../core/Mo
         this.inTransformMap = RenderController.DefaultMap.transform;
         this.inOpacityMap = RenderController.DefaultMap.opacity;
         this.inOriginMap = RenderController.DefaultMap.origin;
+        this.inAlignMap = RenderController.DefaultMap.align;
         this.outTransformMap = RenderController.DefaultMap.transform;
         this.outOpacityMap = RenderController.DefaultMap.opacity;
         this.outOriginMap = RenderController.DefaultMap.origin;
+        this.outAlignMap = RenderController.DefaultMap.align;
 
         this._output = [];
     }
@@ -15854,7 +15954,8 @@ define('famous/views/RenderController',['require','exports','module','../core/Mo
         opacity: function(progress) {
             return progress;
         },
-        origin: null
+        origin: null,
+        align: null
     };
 
     function _mappedState(map, state) {
@@ -15912,6 +16013,21 @@ define('famous/views/RenderController',['require','exports','module','../core/Mo
     };
 
     /**
+     * inAlignFrom sets the accessor for the state of the align used in transitioning in renderables.
+     * @method inAlignFrom
+     * @param {Function|Transitionable} align A function that returns an align from outside closure, or a
+     * a transitionable that manages align (a two value array of numbers between zero and one).
+     * @chainable
+     */
+    RenderController.prototype.inAlignFrom = function inAlignFrom(align) {
+        if (align instanceof Function) this.inAlignMap = align;
+        else if (align && align.get) this.inAlignMap = align.get.bind(align);
+        else throw new Error('inAlignFrom takes only function or getter object');
+        //TODO: tween align
+        return this;
+    };
+
+    /**
      * outTransformFrom sets the accessor for the state of the transform used in transitioning out renderables.
      * @method outTransformFrom
      * @param {Function|Transitionable} transform  A function that returns a transform from outside closure, or a
@@ -15953,6 +16069,21 @@ define('famous/views/RenderController',['require','exports','module','../core/Mo
         else if (origin && origin.get) this.outOriginMap = origin.get.bind(origin);
         else throw new Error('outOriginFrom takes only function or getter object');
         //TODO: tween origin
+        return this;
+    };
+
+    /**
+     * outAlignFrom sets the accessor for the state of the align used in transitioning out renderables.
+     * @method outAlignFrom
+     * @param {Function|Transitionable} align A function that returns an align from outside closure, or a
+     * a transitionable that manages align (a two value array of numbers between zero and one).
+     * @chainable
+     */
+    RenderController.prototype.outAlignFrom = function outAlignFrom(align) {
+        if (align instanceof Function) this.outAlignMap = align;
+        else if (align && align.get) this.outAlignMap = align.get.bind(align);
+        else throw new Error('outAlignFrom takes only function or getter object');
+        //TODO: tween align
         return this;
     };
 
@@ -16011,8 +16142,10 @@ define('famous/views/RenderController',['require','exports','module','../core/Mo
             var modifier = new Modifier({
                 transform: this.inTransformMap ? _mappedState.bind(this, this.inTransformMap, state) : null,
                 opacity: this.inOpacityMap ? _mappedState.bind(this, this.inOpacityMap, state) : null,
-                origin: this.inOriginMap ? _mappedState.bind(this, this.inOriginMap, state) : null
+                origin: this.inOriginMap ? _mappedState.bind(this, this.inOriginMap, state) : null,
+                align: this.inAlignMap ? _mappedState.bind(this, this.inAlignMap, state) : null
             });
+
             var node = new RenderNode();
             node.add(modifier).add(renderable);
 
@@ -16053,6 +16186,7 @@ define('famous/views/RenderController',['require','exports','module','../core/Mo
         modifier.transformFrom(this.outTransformMap ? _mappedState.bind(this, this.outTransformMap, state) : null);
         modifier.opacityFrom(this.outOpacityMap ? _mappedState.bind(this, this.outOpacityMap, state) : null);
         modifier.originFrom(this.outOriginMap ? _mappedState.bind(this, this.outOriginMap, state) : null);
+        modifier.alignFrom(this.outAlignMap ? _mappedState.bind(this, this.outAlignMap, state) : null);
 
         if (this._outgoingRenderables.indexOf(renderable) < 0) this._outgoingRenderables.push(renderable);
 
@@ -16453,6 +16587,7 @@ define('famous/views/Flipper',['require','exports','module','../core/Transform',
      * @constructor
      * @param {Options} [options] An object of options.
      * @param {Transition} [options.transition=true] The transition executed when flipping your Flipper instance.
+     * @param {Direction} [options.direction=Flipper.DIRECTION_X] Direction specifies the axis of rotation.
      */
     function Flipper(options) {
         this.options = Object.create(Flipper.DEFAULT_OPTIONS);
@@ -16740,6 +16875,16 @@ define('famous/views/GridLayout',['require','exports','module','../core/Entity',
     GridLayout.prototype.sequenceFrom = function sequenceFrom(sequence) {
         if (sequence instanceof Array) sequence = new ViewSequence(sequence);
         this.sequence = sequence;
+    };
+
+    /**
+     * Returns the size of the grid layout.
+     *
+     * @method getSize
+     * @return {Array} Total size of the grid layout.
+     */
+    GridLayout.prototype.getSize = function getSize() {
+      return this._contextSizeCache;
     };
 
     /**
@@ -18281,15 +18426,18 @@ define('famous/widgets/NavigationBar',['require','exports','module','../core/Sce
                 {
                     transform: Transform.inFront,
                     origin: [0, 0.5],
+                    align: [0, 0.5],
                     target: this.back
                 },
                 {
                     origin: [0.5, 0.5],
+                    align: [0.5, 0.5],
                     target: this.title
                 },
                 {
                     transform: Transform.inFront,
                     origin: [1, 0.5],
+                    align: [1, 0.5],
                     target: this.more
                 }
             ]
@@ -18521,7 +18669,7 @@ define('famous/widgets/ToggleButton',['require','exports','module','../core/Surf
      */
     function ToggleButton(options) {
         this.options = {
-            content: '',
+            content: ['', ''],
             offClasses: ['off'],
             onClasses: ['on'],
             size: undefined,
@@ -18561,27 +18709,39 @@ define('famous/widgets/ToggleButton',['require','exports','module','../core/Surf
 
     /**
      * Transition towards the 'on' state and dispatch an event to
-     *  listeners to announce it was selected
+     *  listeners to announce it was selected. Accepts an optional
+     *  argument, `suppressEvent`, which, if truthy, prevents the
+     *  event from being dispatched.
      *
      * @method select
+     * @param [suppressEvent] {Boolean} When truthy, prevents the
+     *   widget from emitting the 'select' event.
      */
-    ToggleButton.prototype.select = function select() {
+    ToggleButton.prototype.select = function select(suppressEvent) {
         this.selected = true;
         this.arbiter.show(this.onSurface, this.options.inTransition);
 //        this.arbiter.setMode(ToggleButton.ON, this.options.inTransition);
-        this._eventOutput.emit('select');
+        if (!suppressEvent) {
+            this._eventOutput.emit('select');
+        }
     };
 
     /**
      * Transition towards the 'off' state and dispatch an event to
-     *  listeners to announce it was deselected
+     *  listeners to announce it was deselected. Accepts an optional
+     *  argument, `suppressEvent`, which, if truthy, prevents the
+     *  event from being dispatched.
      *
      * @method deselect
+     * @param [suppressEvent] {Boolean} When truthy, prevents the
+     *   widget from emitting the 'deselect' event.
      */
-    ToggleButton.prototype.deselect = function deselect() {
+    ToggleButton.prototype.deselect = function deselect(suppressEvent) {
         this.selected = false;
         this.arbiter.show(this.offSurface, this.options.outTransition);
-        this._eventOutput.emit('deselect');
+        if (!suppressEvent) {
+            this._eventOutput.emit('deselect');
+        }
     };
 
     /**
@@ -18604,9 +18764,11 @@ define('famous/widgets/ToggleButton',['require','exports','module','../core/Surf
      */
     ToggleButton.prototype.setOptions = function setOptions(options) {
         if (options.content !== undefined) {
+            if (!(options.content instanceof Array))
+                options.content = [options.content, options.content];
             this.options.content = options.content;
-            this.offSurface.setContent(this.options.content);
-            this.onSurface.setContent(this.options.content);
+            this.offSurface.setContent(this.options.content[0]);
+            this.onSurface.setContent(this.options.content[1]);
         }
         if (options.offClasses) {
             this.options.offClasses = options.offClasses;

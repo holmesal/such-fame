@@ -339,7 +339,7 @@ angular.module('portfolioApp')
     repulse = new Spring 
       length: $scope.springLengths.big
       period: 700
-      dampingRatio: 0.3
+      dampingRatio: 0.5 # controls how "loosely" the circles arrange themselves
 
 
     $scope.spinner = new Transitionable 0
@@ -536,7 +536,7 @@ angular.module('portfolioApp')
               circ.spring.setOptions
                 anchor: cornerParticle
                 length: $scope.springLengths.small * silverRatio
-                dampingRatio: 0.5
+                dampingRatio: 0.6
               circ.setRadius circleSizes.small/2
 
               # Fade and hide the icons
@@ -547,7 +547,7 @@ angular.module('portfolioApp')
 
             # Circle to remain
             else
-              console.log 'circle to remain'
+              # console.log 'circle to remain'
               circ.spring.setOptions
                 anchor: [$scope.dims.w/2,topAnchor]
                 dampingRatio: 0.5
@@ -597,7 +597,7 @@ angular.module('portfolioApp')
           circ.spring.setOptions
               anchor: centerParticle
               length: $scope.springLengths.big * silverRatio * 1
-              dampingRatio: 0.3
+              dampingRatio: 0.4#0.3
 
           circ.setRadius circleSizes.big/2
 
@@ -744,7 +744,7 @@ angular.module('portfolioApp')
     $scope.animateCardEnter = ($done) ->
       $scope.cardTranslation.set [0,0,1500],
         method: 'snap'
-        dampingRatio: 0.2
+        dampingRatio: 0.4
         period: 300
       , ->
         $done()

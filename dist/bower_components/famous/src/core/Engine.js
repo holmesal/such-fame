@@ -31,7 +31,12 @@ define(function(require, exports, module) {
     var Engine = {};
 
     var contexts = [];
+
     var nextTickQueue = [];
+
+    var currentFrame = 0;
+    var nextTickFrame = 0;
+
     var deferQueue = [];
 
     var lastTime = Date.now();
@@ -66,6 +71,9 @@ define(function(require, exports, module) {
      * @method step
      */
     Engine.step = function step() {
+        currentFrame++;
+        nextTickFrame = currentFrame;
+
         var currentTime = Date.now();
 
         // skip frame if we're over our framerate cap
@@ -79,8 +87,8 @@ define(function(require, exports, module) {
         eventHandler.emit('prerender');
 
         // empty the queue
-        for (i = 0; i < nextTickQueue.length; i++) nextTickQueue[i].call(this);
-        nextTickQueue.splice(0);
+        var numFunctions = nextTickQueue.length;
+        while (numFunctions--) (nextTickQueue.shift())(currentFrame);
 
         // limit total execution time for deferrable functions
         while (deferQueue.length && (Date.now() - currentTime) < MAX_DEFER_FRAME_TIME) {
@@ -129,10 +137,20 @@ define(function(require, exports, module) {
         window.addEventListener('touchmove', function(event) {
             event.preventDefault();
         }, true);
+
+        addRootClasses();
+    }
+    var initialized = false;
+
+    function addRootClasses() {
+        if (!document.body) {
+            Engine.nextTick(addRootClasses);
+            return;
+        }
+
         document.body.classList.add('famous-root');
         document.documentElement.classList.add('famous-root');
     }
-    var initialized = false;
 
     /**
      * Add event handler object to set of downstream handlers.
@@ -174,17 +192,20 @@ define(function(require, exports, module) {
     Engine.on = function on(type, handler) {
         if (!(type in eventForwarders)) {
             eventForwarders[type] = eventHandler.emit.bind(eventHandler, type);
-            if (document.body) {
-                document.body.addEventListener(type, eventForwarders[type]);
-            }
-            else {
-                Engine.nextTick(function(type, forwarder) {
-                    document.body.addEventListener(type, forwarder);
-                }.bind(this, type, eventForwarders[type]));
-            }
+
+            addEngineListener(type, eventForwarders[type]);
         }
         return eventHandler.on(type, handler);
     };
+
+    function addEngineListener(type, forwarder) {
+        if (!document.body) {
+            Engine.nextTick(addEventListener.bind(this, type, forwarder));
+            return;
+        }
+
+        document.body.addEventListener(type, forwarder);
+    }
 
     /**
      * Trigger an event, sending to all downstream handlers
@@ -289,16 +310,24 @@ define(function(require, exports, module) {
             el.classList.add(options.containerClass);
             needMountContainer = true;
         }
+
         var context = new Context(el);
         Engine.registerContext(context);
-        if (needMountContainer) {
-            Engine.nextTick(function(context, el) {
-                document.body.appendChild(el);
-                context.emit('resize');
-            }.bind(this, context, el));
-        }
+
+        if (needMountContainer) mount(context, el);
+
         return context;
     };
+
+    function mount(context, el) {
+        if (!document.body) {
+            Engine.nextTick(mount.bind(this, context, el));
+            return;
+        }
+
+        document.body.appendChild(el);
+        context.emit('resize');
+    }
 
     /**
      * Registers an existing context to be updated within the run loop.

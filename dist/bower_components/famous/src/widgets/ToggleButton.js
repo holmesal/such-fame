@@ -24,7 +24,7 @@ define(function(require, exports, module) {
      */
     function ToggleButton(options) {
         this.options = {
-            content: '',
+            content: ['', ''],
             offClasses: ['off'],
             onClasses: ['on'],
             size: undefined,
@@ -64,27 +64,39 @@ define(function(require, exports, module) {
 
     /**
      * Transition towards the 'on' state and dispatch an event to
-     *  listeners to announce it was selected
+     *  listeners to announce it was selected. Accepts an optional
+     *  argument, `suppressEvent`, which, if truthy, prevents the
+     *  event from being dispatched.
      *
      * @method select
+     * @param [suppressEvent] {Boolean} When truthy, prevents the
+     *   widget from emitting the 'select' event.
      */
-    ToggleButton.prototype.select = function select() {
+    ToggleButton.prototype.select = function select(suppressEvent) {
         this.selected = true;
         this.arbiter.show(this.onSurface, this.options.inTransition);
 //        this.arbiter.setMode(ToggleButton.ON, this.options.inTransition);
-        this._eventOutput.emit('select');
+        if (!suppressEvent) {
+            this._eventOutput.emit('select');
+        }
     };
 
     /**
      * Transition towards the 'off' state and dispatch an event to
-     *  listeners to announce it was deselected
+     *  listeners to announce it was deselected. Accepts an optional
+     *  argument, `suppressEvent`, which, if truthy, prevents the
+     *  event from being dispatched.
      *
      * @method deselect
+     * @param [suppressEvent] {Boolean} When truthy, prevents the
+     *   widget from emitting the 'deselect' event.
      */
-    ToggleButton.prototype.deselect = function deselect() {
+    ToggleButton.prototype.deselect = function deselect(suppressEvent) {
         this.selected = false;
         this.arbiter.show(this.offSurface, this.options.outTransition);
-        this._eventOutput.emit('deselect');
+        if (!suppressEvent) {
+            this._eventOutput.emit('deselect');
+        }
     };
 
     /**
@@ -107,9 +119,11 @@ define(function(require, exports, module) {
      */
     ToggleButton.prototype.setOptions = function setOptions(options) {
         if (options.content !== undefined) {
+            if (!(options.content instanceof Array))
+                options.content = [options.content, options.content];
             this.options.content = options.content;
-            this.offSurface.setContent(this.options.content);
-            this.onSurface.setContent(this.options.content);
+            this.offSurface.setContent(this.options.content[0]);
+            this.onSurface.setContent(this.options.content[1]);
         }
         if (options.offClasses) {
             this.options.offClasses = options.offClasses;
