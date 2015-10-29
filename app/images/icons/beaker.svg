@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="38px" height="60px" viewBox="0 0 38 60" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.3.3 (12072) - http://www.bohemiancoding.com/sketch -->
+    <title>beaker</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="mobile-5" sketch:type="MSArtboardGroup" transform="translate(-542.000000, -629.000000)" fill="#FEFEFE">
+            <g id="beaker" sketch:type="MSLayerGroup" transform="translate(542.000000, 629.000000)">
+                <path d="M34.8176508,18.6 L32.3946984,22.4562 L32.3946984,55.2 C32.3946984,56.9274 31.7185397,57.6 29.982,57.6 L18.8286984,57.6 L7.67539683,57.6 C5.93885714,57.6 5.26269841,56.9274 5.26269841,55.2 L5.26269841,22.4562 L2.83974603,18.6 L0,18.6 L2.85,23.1438 L2.85,55.2 C2.85,58.2504 4.60885714,60 7.67539683,60 L18.8286984,60 L29.982,60 C33.0485397,60 34.8073968,58.2504 34.8073968,55.2 L34.8073968,23.1438 L37.6573968,18.6 L34.8176508,18.6 L34.8176508,18.6 Z" id="Shape" sketch:type="MSShapeGroup"></path>
+                <ellipse id="Oval" sketch:type="MSShapeGroup" cx="23.6540952" cy="17.1" rx="3.92063492" ry="3.9"></ellipse>
+                <ellipse id="Oval" sketch:type="MSShapeGroup" cx="24.8604444" cy="9.9" rx="1.50793651" ry="1.5"></ellipse>
+                <ellipse id="Oval" sketch:type="MSShapeGroup" cx="16.416" cy="16.5" rx="1.50793651" ry="1.5"></ellipse>
+                <ellipse id="Oval" sketch:type="MSShapeGroup" cx="14.6064762" cy="1.5" rx="1.50793651" ry="1.5"></ellipse>
+                <ellipse id="Oval" sketch:type="MSShapeGroup" cx="13.7017143" cy="10.8" rx="2.41269841" ry="2.4"></ellipse>
+                <ellipse id="Oval" sketch:type="MSShapeGroup" cx="19.1302857" cy="7.8" rx="1.80952381" ry="1.8"></ellipse>
+                <ellipse id="Oval" sketch:type="MSShapeGroup" cx="10.384254" cy="17.7" rx="2.71428571" ry="2.7"></ellipse>
+                <rect id="Rectangle-path" sketch:type="MSShapeGroup" x="7.66996825" y="24" width="22.3174603" height="31.2"></rect>
+            </g>
+        </g>
+    </g>
+</svg>

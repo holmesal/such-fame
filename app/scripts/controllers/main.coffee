@@ -33,35 +33,59 @@ angular.module('portfolioApp')
     Transitionable.registerMethod 'snap', SnapTransition
 
     $scope.projects = [
-      name: 'Hashtag'
-      icon: 'images/icons/hashtag.svg'
-      description: 'Awesome group chat for all of the things'
-      template: 'views/projects/hashtag.html'
-      size: [26,true]
-    ,
-      name: 'H.E.R.O.'
-      icon: 'images/icons/hero.svg'
-      description: 'Rugged humanitarian UAV'
-      template: 'views/projects/hero.html'
-      size: [30,true]
-    ,
-      name: 'Shortwave'
-      icon: 'images/icons/shortwave.svg'
-      description: 'A chat room with a 100-foot range'
-      template: 'views/projects/shortwave.html'
-      size: [30,true]
-    ,
-      name: 'hey i\'m alonso'
+    #   name: 'Hashtag'
+    #   icon: 'images/icons/hashtag.svg'
+    #   description: 'Awesome group chat for all of the things'
+    #   template: 'views/projects/hashtag.html'
+    #   size: [26,true]
+    # ,
+    #   name: 'H.E.R.O.'
+    #   icon: 'images/icons/hero.svg'
+    #   description: 'Rugged humanitarian UAV'
+    #   template: 'views/projects/hero.html'
+    #   size: [30,true]
+    # ,
+    #   name: 'Shortwave'
+    #   icon: 'images/icons/shortwave.svg'
+    #   description: 'A chat room with a 100-foot range'
+    #   template: 'views/projects/shortwave.html'
+    #   size: [30,true]
+    # ,
+      name: 'Alonso Holmes'
       icon: 'images/icons/alonso.svg'
-      description: ''
+      description: 'Engineer, designer, and product person'
       template: 'views/projects/alonso.html'
       size: [true,34]
+    # ,
+    #   name: 'EROS'
+    #   icon: 'images/icons/satellite.svg'
+    #   description: 'In-flight satellite camera calibration'
+    #   template: 'views/projects/satellite.html'
+    #   size: [26,true]
     ,
-      name: 'EROS'
-      icon: 'images/icons/satellite.svg'
-      description: 'In-flight satellite camera calibration'
-      template: 'views/projects/satellite.html'
-      size: [26,true]
+      name: 'MountainLab'
+      icon: 'images/icons/mountain.svg'
+      description: 'Mountaintop product studio'
+      template: 'views/projects/mountainlab.html'
+      size: [true,22]
+    ,
+      name: 'Client Work'
+      icon: 'images/icons/tie.svg'
+      description: 'Selected client projects'
+      template: 'views/projects/clientwork.html'
+      size: [true,34]
+    ,
+      name: 'Projects'
+      icon: 'images/icons/beaker.svg'
+      description: 'Things I\'m hacking on'
+      template: 'views/projects/projects.html'
+      size: [true,34]
+    ,
+      name: 'Skills'
+      icon: 'images/icons/code.svg'
+      description: 'Frameworks, languages, and Excel endorsements'
+      template: 'views/projects/skills.html'
+      size: [true,22]
     ]
 
     numCircles = $scope.projects.length#6
